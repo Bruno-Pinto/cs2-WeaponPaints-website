@@ -50,19 +50,24 @@ window.changeSkinTemplate = (weapon, langObject, selectedKnife) => {
     document.getElementById('skinsContainer').appendChild(card)  
 }
 
-window.changeKnifeSkinTemplate = (knife, langObject, selectedKnife) => {
+window.changeKnifeSkinTemplate = (knife, langObject, selectedKnife, matchingItems) => {
     let card = document.createElement('div')
     card.classList.add('col-6', 'col-sm-4', 'col-md-3', 'p-2')
 
     // check if knife is selected
-    let active = ''
-    if (knife.weapon_name == selectedKnife.knife) {
-        active = 'active-card'
+    let active = matchingItems && matchingItems.length > 0 ? 'active-card' : '';
+
+    // Generate team badges
+    let teamBadges = '';
+    if (selectedTeam === 'both' && matchingItems && matchingItems.length > 0) {
+        matchingItems.forEach(match => {
+            teamBadges += getTeamBadge(match.weapon_team);
+        });
     }
 
-
     card.innerHTML = `
-    <div class="rounded-3 d-flex flex-column card-common weapon-card ${active} weapon_knife" id="${knife.weapon_name}">
+    <div class="rounded-3 d-flex flex-column card-common weapon-card ${active} weapon_knife position-relative" id="${knife.weapon_name}">
+        ${teamBadges}
         <button id="reset-${knife.weapon_name}" onclick="resetSkin(${knife.weapon_defindex}, '${selectedKnife.steamid}')" style="z-index: 3;" class="revert d-flex justify-content-center align-items-center text-danger rounded-circle">
             <i class="fa-solid fa-rotate-right"></i>
         </button>
@@ -102,14 +107,21 @@ window.knivesTemplate = (knife, langObject, selectedKnife) => {
     let card = document.createElement('div')
     card.classList.add('col-6', 'col-sm-4', 'col-md-3', 'p-2')
 
-    // check if knife is selected
-    let active = ''
-    if (knife.weapon_name == selectedKnife.knife) {
-        active = 'active-card'
+    // check if knife is selected for any team
+    const allMatches = getAllSelectedForItem(selectedKnives, {knife: knife.weapon_name});
+    let active = allMatches.length > 0 ? 'active-card' : '';
+
+    // Generate team badges
+    let teamBadges = '';
+    if (selectedTeam === 'both' && allMatches.length > 0) {
+        allMatches.forEach(match => {
+            teamBadges += getTeamBadge(match.weapon_team);
+        });
     }
 
     card.innerHTML = `
-    <div class="rounded-3 d-flex flex-column card-common weapon-card ${active} weapon_knife" id="${knife.weapon_name}">
+    <div class="rounded-3 d-flex flex-column card-common weapon-card ${active} weapon_knife position-relative" id="${knife.weapon_name}">
+        ${teamBadges}
         <div style="z-index: 3;" class="loading-card d-flex justify-content-center align-items-center w-100 h-100" id="loading-${knife.weapon_name}">
             <div class="spinner-border spinner-border-xl" role="status">
                 <span class="visually-hidden">Loading...</span>
@@ -132,15 +144,21 @@ window.glovesTemplate = (gloves, langObject, selectedGloves) => {
     let card = document.createElement('div')
     card.classList.add('col-6', 'col-sm-4', 'col-md-3', 'p-2')
 
-    // check if knife is selected
-    let active = ''
+    // check if gloves are selected for any team
+    const allMatches = getAllSelectedForItem(selectedGloves, {weapon_defindex: gloves.weapon_defindex});
+    let active = allMatches.length > 0 ? 'active-card' : '';
 
-    if (gloves.weapon_defindex == selectedGloves.weapon_defindex) {
-        active = 'active-card'
+    // Generate team badges
+    let teamBadges = '';
+    if (selectedTeam === 'both' && allMatches.length > 0) {
+        allMatches.forEach(match => {
+            teamBadges += getTeamBadge(match.weapon_team);
+        });
     }
 
     card.innerHTML = `
-    <div class="rounded-3 d-flex flex-column card-common weapon-card ${active} weapon_knife" id="${gloves.weapon_name}">
+    <div class="rounded-3 d-flex flex-column card-common weapon-card ${active} weapon_knife position-relative" id="${gloves.weapon_name}">
+        ${teamBadges}
         <div style="z-index: 3;" class="loading-card d-flex justify-content-center align-items-center w-100 h-100" id="loading-${gloves.weapon_name}">
             <div class="spinner-border spinner-border-xl" role="status">
                 <span class="visually-hidden">Loading...</span>
@@ -159,24 +177,31 @@ window.glovesTemplate = (gloves, langObject, selectedGloves) => {
     document.getElementById('skinsContainer').appendChild(card)       
 }
 
-window.changeGlovesSkinTemplate = (gloves, langObject, selectedGloves) => {
+window.changeGlovesSkinTemplate = (gloves, langObject, selectedGloves, matchingItems) => {
     let card = document.createElement('div')
     card.classList.add('col-6', 'col-sm-4', 'col-md-3', 'p-2')
 
     let buttonInner = langObject.setWeapon
     let buttonFunc = `changeGlove(\'${gloves.weapon_name}\', ${selectedGloves.steamid})`
 
-    // check if knife is selected
-    let active = ''
-    if (gloves.weapon_defindex == selectedGloves.weapon_defindex) {
-        active = 'active-card'
+    // check if gloves are selected
+    let active = matchingItems && matchingItems.length > 0 ? 'active-card' : '';
+    if (active) {
         buttonInner = langObject.changeSkin
         buttonFunc =  `knifeSkins(\'${gloves.weapon_name}\')`
     }
 
+    // Generate team badges
+    let teamBadges = '';
+    if (selectedTeam === 'both' && matchingItems && matchingItems.length > 0) {
+        matchingItems.forEach(match => {
+            teamBadges += getTeamBadge(match.weapon_team);
+        });
+    }
 
     card.innerHTML = `
-    <div class="rounded-3 d-flex flex-column card-common weapon-card ${active} weapon_knife" id="${gloves.weapon_name}">
+    <div class="rounded-3 d-flex flex-column card-common weapon-card ${active} weapon_knife position-relative" id="${gloves.weapon_name}">
+        ${teamBadges}
         <button id="reset-${gloves.weapon_name}" onclick="resetSkin(${gloves.weapon_defindex}, '${selectedGloves.steamid}')" style="z-index: 3;" class="revert d-flex justify-content-center align-items-center text-danger rounded-circle">
             <i class="fa-solid fa-rotate-right"></i>
         </button>
@@ -207,6 +232,7 @@ window.showAgents = (type) => {
 
     // clear main container
     document.getElementById('skinsContainer').innerHTML = ''
+    document.getElementById('skinsContainer').setAttribute('data-category', type === 'ct' ? 'ct-agents' : 't-agents');
 
     agentsObject.forEach(element => {
         console.log(element.team, team.type)
@@ -226,18 +252,34 @@ window.showAgents = (type) => {
             let active = ''
             let steamid = user.id
 
-            // Make outline if this skin is selected
-            
-            if (selectedAgents.agent_t == element.model || selectedAgents.agent_ct == element.model) {
-                active = 'active-card'
+            // Make outline if this skin is selected - check against current team filter
+            const matchingAgents = isSelectedForTeam(selectedAgents, {});
+            if (matchingAgents && matchingAgents.length > 0) {
+                const agentColumn = type === 'ct' ? 'agent_ct' : 'agent_t';
+                matchingAgents.forEach(match => {
+                    if (match[agentColumn] == element.model) {
+                        active = 'active-card';
+                    }
+                });
+            }
+
+            // Generate team badges
+            let teamBadges = '';
+            if (selectedTeam === 'both' && matchingAgents && matchingAgents.length > 0) {
+                const agentColumn = type === 'ct' ? 'agent_ct' : 'agent_t';
+                matchingAgents.forEach(match => {
+                    if (match[agentColumn] == element.model) {
+                        teamBadges += getTeamBadge(match.weapon_team);
+                    }
+                });
             }
             
             let card = document.createElement('div')
             card.classList.add('col-6', 'col-sm-4', 'col-md-3', 'p-2')
 
             card.innerHTML = `
-                <div onclick="changeAgent(\'${steamid}\', \'${element.model}\', \'${type}\')" id="agent-${element.model}" class="weapon-card rounded-3 d-flex flex-column ${active} ${bgColor} contrast-reset pb-2" data-type="skinCard" data-btn-type="">
-                
+                <div onclick="changeAgent(\'${steamid}\', \'${element.model}\', \'${type}\')" id="agent-${element.model}" class="weapon-card rounded-3 d-flex flex-column ${active} ${bgColor} contrast-reset pb-2 position-relative" data-type="skinCard" data-btn-type="">
+                    ${teamBadges}
                     <div style="z-index: 3;" class="loading-card d-flex justify-content-center align-items-center w-100 h-100" id="loading-${element.model}">
                         <div class="spinner-border spinner-border-xl" role="status">
                             <span class="visually-hidden">Loading...</span>
@@ -264,6 +306,7 @@ window.showAgents = (type) => {
 window.showMusicKits = () => {
     // clear main container
     document.getElementById('skinsContainer').innerHTML = ''
+    document.getElementById('skinsContainer').setAttribute('data-category', 'music');
 
     musicObject.forEach(element => {
         console.log(element.id.slice(-2))
@@ -273,18 +316,26 @@ window.showMusicKits = () => {
             let steamid = user.id
             let music_id = element.id.slice(element.id.lastIndexOf('-')+1)
 
-            // TODO: Make outline if this skin is selected
-            console.log(music_id, selectedMusic.music_id)
-
-            if (music_id == selectedMusic.music_id) {
+            // Check if this music is selected for current team
+            const matchingMusic = isSelectedForTeam(selectedMusic, {music_id: music_id});
+            if (matchingMusic && matchingMusic.length > 0) {
                 active = 'active-card'
             }
             
+            // Generate team badges
+            let teamBadges = '';
+            if (selectedTeam === 'both' && matchingMusic && matchingMusic.length > 0) {
+                matchingMusic.forEach(match => {
+                    teamBadges += getTeamBadge(match.weapon_team);
+                });
+            }
+
             let card = document.createElement('div')
             card.classList.add('col-6', 'col-sm-4', 'col-md-3', 'p-2')
 
             card.innerHTML = `
-                <div onclick="changeMusic(\'${steamid}\', \'${music_id}\')" id="music-${music_id}" class="weapon-card card-rare rounded-3 d-flex flex-column ${active} ${bgColor} contrast-reset pb-2" data-type="skinCard" data-btn-type="">
+                <div onclick="changeMusic(\'${steamid}\', \'${music_id}\')" id="music-${music_id}" class="weapon-card card-rare rounded-3 d-flex flex-column ${active} ${bgColor} contrast-reset pb-2 position-relative" data-type="skinCard" data-btn-type="">
+                    ${teamBadges}
                     <div style="z-index: 3;" class="loading-card d-flex justify-content-center align-items-center w-100 h-100" id="loading-${music_id}">
                         <div class="spinner-border spinner-border-xl" role="status">
                             <span class="visually-hidden">Loading...</span>

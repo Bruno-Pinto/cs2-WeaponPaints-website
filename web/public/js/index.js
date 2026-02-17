@@ -2,6 +2,68 @@ const socket = io()
 
 let currentWeaponId = ''
 let currentPaintId = ''
+let selectedTeam = 'both' // Default team filter
+
+// Team filter management
+function setTeamFilter(team) {
+    selectedTeam = team;
+
+    // Update button states
+    document.getElementById('teamBoth').className = team === 'both' ? 'btn btn-primary active' : 'btn btn-outline-primary';
+    document.getElementById('teamCT').className = team === 'ct' ? 'btn btn-primary active' : 'btn btn-outline-primary';
+    document.getElementById('teamT').className = team === 't' ? 'btn btn-primary active' : 'btn btn-outline-primary';
+
+    // Refresh current view to apply filter
+    const currentCategory = document.getElementById('skinsContainer').getAttribute('data-category');
+    if (currentCategory) {
+        switch(currentCategory) {
+            case 'knives': showKnives(); break;
+            case 'gloves': showGloves(); break;
+            case 'pistols': showPistols(); break;
+            case 'rifles': showRifles(); break;
+            case 'pps': showPPs(); break;
+            case 'shotguns': showShotguns(); break;
+            case 'utility': showUtility(); break;
+            case 'ct-agents': showCTAgents(); break;
+            case 't-agents': showTAgents(); break;
+            case 'music': showMusic(); break;
+        }
+    }
+}
+
+// Helper to get team badge HTML
+function getTeamBadge(weaponTeam) {
+    if (weaponTeam === 2) {
+        return '<span class="badge bg-warning text-dark position-absolute top-0 end-0 m-2" style="z-index: 10;">T</span>';
+    } else if (weaponTeam === 3) {
+        return '<span class="badge bg-info text-dark position-absolute top-0 end-0 m-2" style="z-index: 10;">CT</span>';
+    }
+    return '';
+}
+
+// Helper to check if item is selected for current team
+function isSelectedForTeam(items, matchCriteria) {
+    if (!items || !Array.isArray(items)) return null;
+
+    const teamMap = { 'both': [2, 3], 'ct': [3], 't': [2] };
+    const teamsToCheck = teamMap[selectedTeam] || [2, 3];
+
+    const matches = items.filter(item => {
+        const criteriaMatch = Object.keys(matchCriteria).every(key => item[key] == matchCriteria[key]);
+        return criteriaMatch && teamsToCheck.includes(item.weapon_team);
+    });
+
+    return matches.length > 0 ? matches : null;
+}
+
+// Helper to get all selected items (for showing badges in "both" mode)
+function getAllSelectedForItem(items, matchCriteria) {
+    if (!items || !Array.isArray(items)) return [];
+
+    return items.filter(item => {
+        return Object.keys(matchCriteria).every(key => item[key] == matchCriteria[key]);
+    });
+}
 
 
 function getKeyByValue(object, value) {
@@ -125,7 +187,14 @@ const changeParams = () => {
             </div>
         `
 
-    socket.emit('change-params', {steamid: steamid, weaponid: weaponid, paintid: paintid, float: float, pattern: pattern})
+    socket.emit('change-params', {
+        steamid: steamid,
+        weaponid: weaponid,
+        paintid: paintid,
+        float: float,
+        pattern: pattern,
+        team: selectedTeam
+    })
 }
 
 socket.on('params-changed', () => {

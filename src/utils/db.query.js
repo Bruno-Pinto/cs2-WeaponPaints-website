@@ -63,9 +63,9 @@ const lang = {
 async function getLoggedInUserInfo(req) {
     let session = req.session
     let [
-        knife, 
-        skins, 
-        gloves, 
+        knives,
+        skins,
+        gloves,
         agents,
         music,
     ] = await Promise.all(
@@ -77,15 +77,11 @@ async function getLoggedInUserInfo(req) {
             query(`SELECT * FROM wp_player_music WHERE steamid = ${req.user.id}`),
         ]
     )
-    
-    knife = knife[0]
-    gloves = gloves[0]
-    agents = agents[0]
-    music = music[0]
 
     return {
         config: config,
-        knife: knife,
+        knives: knives,
+        knife: knives.length > 0 ? knives[0] : { steamid: req.user.id, knife: null },
         skins: skins,
         gloves: gloves,
         agents: agents,
@@ -95,6 +91,7 @@ async function getLoggedInUserInfo(req) {
         user: req.user
     }
 }
+
 
 async function getNotLoggedInUserInfo(req) {
     let session = req.session

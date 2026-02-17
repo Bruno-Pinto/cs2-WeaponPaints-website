@@ -171,8 +171,20 @@
 
             </div>
             <div class="col-mb-12 col-lg-10 mb-5">
+                <div class="bg-nav p-3 rounded mb-3 d-flex justify-content-center">
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-primary active" id="teamBoth" onclick="setTeamFilter('both')">
+                            <i class="fa-solid fa-users"></i> Both Teams
+                        </button>
+                        <button type="button" class="btn btn-outline-primary" id="teamCT" onclick="setTeamFilter('ct')">
+                            <i class="fa-solid fa-shield"></i> CT
+                        </button>
+                        <button type="button" class="btn btn-outline-primary" id="teamT" onclick="setTeamFilter('t')">
+                            <i class="fa-solid fa-skull"></i> T
+                        </button>
+                    </div>
+                </div>
                 <div class="row" id="skinsContainer">
-
                     <h3 class="text-center mt-5"><%= lang.selectCategory %></h3>
 
                 </div>
@@ -260,7 +272,8 @@ function updateFloatText(value) {
 
 <% if (typeof knife != 'undefined') { %>
     <script>    
-        selectedKnife = <%- JSON.stringify(knife) %>;
+        let selectedKnives = <%- JSON.stringify(knives) %>;
+        let selectedKnife = <%- JSON.stringify(knife) %>;
     </script>
 <% } %>
 
@@ -272,19 +285,19 @@ function updateFloatText(value) {
 
 <% if (typeof gloves != 'undefined') { %>
     <script>
-        selectedGloves = <%- JSON.stringify(gloves) %>;
+        let selectedGloves = <%- JSON.stringify(gloves) %>;
     </script>
 <% } %>
 
 <% if (typeof agents != 'undefined') { %>
     <script>
-        selectedAgents = <%- JSON.stringify(agents) %>;
+        let selectedAgents = <%- JSON.stringify(agents) %>;
     </script>
 <% } %>
 
 <% if (typeof music != 'undefined') { %>
     <script>
-        selectedMusic = <%- JSON.stringify(music) %>;
+        let selectedMusic = <%- JSON.stringify(music) %>;
     </script>
 <% } %>
 

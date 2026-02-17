@@ -51,18 +51,17 @@ const showDefaults = (type) => {
     document.getElementById('skinsContainer').innerHTML = ''
 
     if (type == 'sfui_invpanel_filter_melee') {
+        document.getElementById('skinsContainer').setAttribute('data-category', 'knives');
         defaultsObject.forEach(knife => {
             if (knife.weapon_type == 'sfui_invpanel_filter_melee') {
-                const skinWeapon = selectedSkins.find(element => {
-                    if (element.weapon_defindex == weaponIds[knife.weapon_name]) {
-                        return true
-                    }
-                    return false
-                })                 
+                const matchingItems = isSelectedForTeam(selectedKnives, {knife: knife.weapon_name});
 
-                if (typeof skinWeapon != 'undefined') {
-                    changeKnifeSkinTemplate(knife, langObject, selectedKnife)
-                    changeSkinCard(knife, skinWeapon)
+                if (matchingItems) {
+                    changeKnifeSkinTemplate(knife, langObject, selectedKnife, matchingItems)
+                    const skinWeapon = selectedSkins.find(element => element.weapon_defindex == weaponIds[knife.weapon_name]);
+                    if (typeof skinWeapon != 'undefined') {
+                        changeSkinCard(knife, skinWeapon)
+                    }
                 } else {
                     knivesTemplate(knife, langObject, selectedKnife)
                 }    
@@ -70,18 +69,17 @@ const showDefaults = (type) => {
             }
         })
     } else if (type == 'sfui_invpanel_filter_gloves') {
+        document.getElementById('skinsContainer').setAttribute('data-category', 'gloves');
         defaultsObject.forEach(glove => {
             if (glove.weapon_type == 'sfui_invpanel_filter_gloves') {
-                const skinWeapon = selectedSkins.find(element => {
-                    if (element.weapon_defindex == weaponIds[glove.weapon_name]) {
-                        return true
-                    }
-                    return false
-                })                 
+                const matchingItems = isSelectedForTeam(selectedGloves, {weapon_defindex: weaponIds[glove.weapon_name]});
 
-                if (typeof skinWeapon != 'undefined') {
-                    changeGlovesSkinTemplate(glove, langObject, selectedGloves)
-                    changeSkinCard(glove, skinWeapon)
+                if (matchingItems) {
+                    changeGlovesSkinTemplate(glove, langObject, selectedGloves, matchingItems)
+                    const skinWeapon = selectedSkins.find(element => element.weapon_defindex == weaponIds[glove.weapon_name]);
+                    if (typeof skinWeapon != 'undefined') {
+                        changeSkinCard(glove, skinWeapon)
+                    }
                 } else {
                     glovesTemplate(glove, langObject, selectedGloves)
                 }    
@@ -89,6 +87,15 @@ const showDefaults = (type) => {
             }
         })
     } else {
+        const categoryMap = {
+            'csgo_inventory_weapon_category_pistols': 'pistols',
+            'csgo_inventory_weapon_category_rifles': 'rifles',
+            'csgo_inventory_weapon_category_smgs': 'pps',
+            'csgo_inventory_weapon_category_heavy': 'shotguns',
+            'csgo_inventory_weapon_category_utility': 'utility'
+        };
+        document.getElementById('skinsContainer').setAttribute('data-category', categoryMap[type] || 'other');
+
         defaultsObject.forEach(weapon => {
             if (weapon.weapon_type == type) {
                 const skinWeapon = selectedSkins.find(element => {
@@ -222,19 +229,19 @@ sideBtns.forEach(btn => {
 })
 
 window.changeKnife = (weaponid) => {
-    socket.emit('change-knife', {weaponid: weaponid, steamUserId: user.id})
+    socket.emit('change-knife', {weaponid: weaponid, steamUserId: user.id, team: selectedTeam})
     document.getElementById(`loading-${weaponid}`).style.visibility = 'visible'
     document.getElementById(`loading-${weaponid}`).style.opacity = 1
 }
 
 window.changeGlove = (weaponid) => {
-    socket.emit('change-glove', {weaponid: weaponIds[weaponid], steamUserId: user.id})
+    socket.emit('change-glove', {weaponid: weaponIds[weaponid], steamUserId: user.id, team: selectedTeam})
     document.getElementById(`loading-${weaponid}`).style.visibility = 'visible'
     document.getElementById(`loading-${weaponid}`).style.opacity = 1
 }
 
 window.changeSkin = (steamid, weaponid, paintid) => {
-    socket.emit('change-skin', {steamid: steamid, weaponid: weaponid, paintid: paintid})
+    socket.emit('change-skin', {steamid: steamid, weaponid: weaponid, paintid: paintid, team: selectedTeam})
     document.getElementById(`loading-${weaponid}-${paintid}`).style.visibility = 'visible'
     document.getElementById(`loading-${weaponid}-${paintid}`).style.opacity = 1
 }
@@ -248,14 +255,14 @@ window.changeAgent = (steamid, model, team) => {
 
 window.changeMusic = (steamid, id) => {
     console.log(steamid, id)
-    socket.emit('change-music', {steamid: steamid, id: id})
+    socket.emit('change-music', {steamid: steamid, id: id, team: selectedTeam})
     document.getElementById(`loading-${id}`).style.visibility = 'visible'
     document.getElementById(`loading-${id}`).style.opacity = 1
 }
 
 window.resetSkin = (weaponid, steamid) => {
     console.log(steamid, weaponid)
-    socket.emit('reset-skin', {steamid: user.id, weaponid: weaponid})
+    socket.emit('reset-skin', {steamid: user.id, weaponid: weaponid, team: selectedTeam})
 }
 
 socket.on('skin-reset', data => {
@@ -398,20 +405,32 @@ window.knifeSkins = (knifeType) => {
                 phase = `(${element.phase})`
             }
 
-            // Make outline if this skin is selected
-            selectedSkins.forEach(el => {
-                if (el.weapon_paint_id == element.paint_index && (el.weapon_defindex == weaponIds[element.weapon.id] || el.model_idx == weaponIds[element.weapon.id])) {
-                    active = 'active-card'
-                    float = el.weapon_wear
-                    pattern = el.weapon_seed
-                }
-            })
-            
+            // Check if skin is selected for current team
+            const matchingSkins = isSelectedForTeam(selectedSkins, {
+                weapon_paint_id: element.paint_index,
+                weapon_defindex: weaponIds[element.weapon.id]
+            });
+
+            if (matchingSkins && matchingSkins.length > 0) {
+                active = 'active-card'
+                float = matchingSkins[0].weapon_wear
+                pattern = matchingSkins[0].weapon_seed
+            }
+
+            // Generate team badges for "both" mode
+            let teamBadges = '';
+            if (selectedTeam === 'both' && matchingSkins && matchingSkins.length > 0) {
+                matchingSkins.forEach(match => {
+                    teamBadges += getTeamBadge(match.weapon_team);
+                });
+            }
+
             let card = document.createElement('div')
             card.classList.add('col-6', 'col-sm-4', 'col-md-3', 'p-2')
 
             card.innerHTML = `
-                <div onclick="changeSkin(\'${user.id}\', \'${weaponIds[element.weapon.id]}\', ${element.paint_index})" id="weapon-${weaponIds[element.weapon.id]}-${element.paint_index}" class="weapon-card rounded-3 d-flex flex-column ${active} ${bgColor} contrast-reset pb-2" data-type="skinCard" data-btn-type="${weaponIds[element.weapon.id]}-${element.paint_index}">
+                <div onclick="changeSkin(\'${user.id}\', \'${weaponIds[element.weapon.id]}\', ${element.paint_index})" id="weapon-${weaponIds[element.weapon.id]}-${element.paint_index}" class="weapon-card rounded-3 d-flex flex-column ${active} ${bgColor} contrast-reset pb-2 position-relative" data-type="skinCard" data-btn-type="${weaponIds[element.weapon.id]}-${element.paint_index}">
+                    ${teamBadges}
                     <div style="z-index: 3;" class="loading-card d-flex justify-content-center align-items-center w-100 h-100" id="loading-${weaponIds[element.weapon.id]}-${element.paint_index}">
                         <div class="spinner-border spinner-border-xl" role="status">
                             <span class="visually-hidden">Loading...</span>
