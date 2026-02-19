@@ -1,3 +1,5 @@
+const socket = window.socket
+
 let skinsTemp = await fetch(`/js/json/skins/${lang}-skins.json`)
 let defaultsTemp = await fetch(`/js/json/defaults/${lang}-defaults.json`)
 let agentsTemp = await fetch(`/js/json/skins/agents.json`)
