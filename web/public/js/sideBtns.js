@@ -133,56 +133,57 @@ const showGloves = () => {
     showDefaults('sfui_invpanel_filter_gloves')
 }
 
-conswindow.trackCategory('showPistols')
-    t showPistols = () => {
+const showPistols = () => {
+    window.trackCategory('showPistols')
     sideBtnHandler('sideBtnPistols')
     showDefaults('csgo_inventory_weapon_category_pistols')
 }
-window.trackCategory('showRifles')
-    
+
 const showRifles = () => {
+    window.trackCategory('showRifles')
     sideBtnHandler('sideBtnRifles')
     showDefaults('csgo_inventory_weapon_category_rifles')
 }
-window.trackCategory('showSniperRifles')
-    
+
 const showSniperRifles = () => {
+    window.trackCategory('showSniperRifles')
     sideBtnHandler('sideBtnSniperRifles')
     showDefaults('csgo_inventory_weapon_category_rifles')
-}window.trackCategory('showPPs')
-    
+}
 
 const showPPs = () => {
+    window.trackCategory('showPPs')
     sideBtnHandler('sideBtnPPs')
     showDefaults('csgo_inventory_weapon_category_smgs')
-}window.trackCategory('showShotguns')
+}
     
 
 const showShotguns = () => {
+    window.trackCategory('showShotguns')
     sideBtnHandler('sideBtnShotguns')
-    window.trackCategory('showP')
     showDefaults('csgo_inventory_weapon_category_heavy')
 }
 
 const showP = () => {
+    window.trackCategory('showP')
     sideBtnHandler('sideBtnP')
-    window.trackCategory('showUtility')
     showDefaults('csgo_inventory_weapon_category_heavy')
 }
 
 const showUtility = () => {
+    window.trackCategory('showUtility')
     sideBtnHandler('sideBtnUtility')
-    window.trackCategory('showCTAgents')
     showDefaults('csgo_inventory_weapon_category_utility')
 }
 
 const showCTAgents = () => {
-    window.trackCategory('showTAgents')
+    window.trackCategory('showCTAgents')
     sideBtnHandler('sideBtnCTAgents')
     showAgents('ct')
 }
 
 const showTAgents = () => {
+    window.trackCategory('showTAgents')
     sideBtnHandler('sideBtnTAgents')
     showAgents('t')
 }
