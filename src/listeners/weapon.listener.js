@@ -71,7 +71,9 @@ module.exports = (io, socket) => {
             if (getSkin.length >= 1) {
                 await query(`UPDATE wp_player_skins SET weapon_paint_id = ${data.paintid} WHERE steamid = ${data.steamid} AND weapon_defindex = ${data.weaponid} AND weapon_team = ${weaponTeam}`);
             } else {
-                await query(`INSERT INTO wp_player_skins (steamid, weapon_defindex, weapon_team, weapon_paint_id) VALUES (${data.steamid}, ${data.weaponid}, ${weaponTeam}, ${data.paintid})`);
+                const defaultWear = 0.000001;
+                const defaultSeed = 1;
+                await query(`INSERT INTO wp_player_skins (steamid, weapon_defindex, weapon_team, weapon_paint_id, weapon_wear, weapon_seed) VALUES (${data.steamid}, ${data.weaponid}, ${weaponTeam}, ${data.paintid}, ${defaultWear}, ${defaultSeed})`);
             }
         }
 
