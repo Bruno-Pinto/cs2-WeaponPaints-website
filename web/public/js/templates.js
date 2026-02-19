@@ -22,12 +22,13 @@ window.defaultsTemplate = (weapon, langObject, lang) => {
     document.getElementById('skinsContainer').appendChild(card)  
 }
 
-window.changeSkinTemplate = (weapon, langObject, selectedKnife) => {
+window.changeSkinTemplate = (weapon, langObject, selectedKnife, teamBadges = '') => {
     let card = document.createElement('div')
     card.classList.add('col-6', 'col-sm-4', 'col-md-3', 'p-2')
 
     card.innerHTML = `
-    <div class="rounded-3 d-flex flex-column card-common weapon-card weapon_knife" id="${weapon.weapon_name}">
+    <div class="rounded-3 d-flex flex-column card-common weapon-card weapon_knife position-relative" id="${weapon.weapon_name}">
+        ${teamBadges}
         <button id="reset-${weapon.weapon_name}" onclick="resetSkin(${weapon.weapon_defindex}, '${selectedKnife.steamid}')" style="z-index: 3;" class="revert d-flex justify-content-center align-items-center text-danger rounded-circle">
             <i class="fa-solid fa-rotate-right"></i>
         </button>
@@ -60,9 +61,7 @@ window.changeKnifeSkinTemplate = (knife, langObject, selectedKnife, matchingItem
     // Generate team badges
     let teamBadges = '';
     if (selectedTeam === 'both' && matchingItems && matchingItems.length > 0) {
-        matchingItems.forEach(match => {
-            teamBadges += getTeamBadge(match.weapon_team);
-        });
+        teamBadges = getTeamBadgeForMatches(matchingItems);
     }
 
     card.innerHTML = `
@@ -114,9 +113,7 @@ window.knivesTemplate = (knife, langObject, selectedKnife) => {
     // Generate team badges
     let teamBadges = '';
     if (selectedTeam === 'both' && allMatches.length > 0) {
-        allMatches.forEach(match => {
-            teamBadges += getTeamBadge(match.weapon_team);
-        });
+        teamBadges = getTeamBadgeForMatches(allMatches);
     }
 
     card.innerHTML = `
@@ -151,9 +148,7 @@ window.glovesTemplate = (gloves, langObject, selectedGloves) => {
     // Generate team badges
     let teamBadges = '';
     if (selectedTeam === 'both' && allMatches.length > 0) {
-        allMatches.forEach(match => {
-            teamBadges += getTeamBadge(match.weapon_team);
-        });
+        teamBadges = getTeamBadgeForMatches(allMatches);
     }
 
     card.innerHTML = `
@@ -194,9 +189,7 @@ window.changeGlovesSkinTemplate = (gloves, langObject, selectedGloves, matchingI
     // Generate team badges
     let teamBadges = '';
     if (selectedTeam === 'both' && matchingItems && matchingItems.length > 0) {
-        matchingItems.forEach(match => {
-            teamBadges += getTeamBadge(match.weapon_team);
-        });
+        teamBadges = getTeamBadgeForMatches(matchingItems);
     }
 
     card.innerHTML = `
@@ -267,11 +260,8 @@ window.showAgents = (type) => {
             let teamBadges = '';
             if (selectedTeam === 'both' && matchingAgents && matchingAgents.length > 0) {
                 const agentColumn = type === 'ct' ? 'agent_ct' : 'agent_t';
-                matchingAgents.forEach(match => {
-                    if (match[agentColumn] == element.model) {
-                        teamBadges += getTeamBadge(match.weapon_team);
-                    }
-                });
+                const matchesForAgent = matchingAgents.filter(match => match[agentColumn] == element.model);
+                teamBadges = getTeamBadgeForMatches(matchesForAgent);
             }
             
             let card = document.createElement('div')
@@ -325,9 +315,7 @@ window.showMusicKits = () => {
             // Generate team badges
             let teamBadges = '';
             if (selectedTeam === 'both' && matchingMusic && matchingMusic.length > 0) {
-                matchingMusic.forEach(match => {
-                    teamBadges += getTeamBadge(match.weapon_team);
-                });
+                teamBadges = getTeamBadgeForMatches(matchingMusic);
             }
 
             let card = document.createElement('div')

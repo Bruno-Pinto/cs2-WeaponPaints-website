@@ -4,6 +4,29 @@ let currentWeaponId = ''
 let currentPaintId = ''
 let selectedTeam = 'both' // Default team filter
 
+// Refresh current view to apply filter
+function refreshCurrentCategory() {
+    const currentCategory = document.getElementById('skinsContainer').getAttribute('data-category');
+    if (!currentCategory) {
+        return;
+    }
+
+    switch(currentCategory) {
+        case 'knives': showKnives(); break;
+        case 'gloves': showGloves(); break;
+        case 'pistols': showPistols(); break;
+        case 'rifles': showRifles(); break;
+        case 'pps': showPPs(); break;
+        case 'shotguns': showShotguns(); break;
+        case 'utility': showUtility(); break;
+        case 'ct-agents': showCTAgents(); break;
+        case 't-agents': showTAgents(); break;
+        case 'music': showMusic(); break;
+    }
+}
+
+window.refreshCurrentCategory = refreshCurrentCategory
+
 // Team filter management
 function setTeamFilter(team) {
     selectedTeam = team;
@@ -13,31 +36,44 @@ function setTeamFilter(team) {
     document.getElementById('teamCT').className = team === 'ct' ? 'btn btn-primary active' : 'btn btn-outline-primary';
     document.getElementById('teamT').className = team === 't' ? 'btn btn-primary active' : 'btn btn-outline-primary';
 
-    // Refresh current view to apply filter
-    const currentCategory = document.getElementById('skinsContainer').getAttribute('data-category');
-    if (currentCategory) {
-        switch(currentCategory) {
-            case 'knives': showKnives(); break;
-            case 'gloves': showGloves(); break;
-            case 'pistols': showPistols(); break;
-            case 'rifles': showRifles(); break;
-            case 'pps': showPPs(); break;
-            case 'shotguns': showShotguns(); break;
-            case 'utility': showUtility(); break;
-            case 'ct-agents': showCTAgents(); break;
-            case 't-agents': showTAgents(); break;
-            case 'music': showMusic(); break;
-        }
-    }
+    refreshCurrentCategory();
 }
 
 // Helper to get team badge HTML
-function getTeamBadge(weaponTeam) {
-    if (weaponTeam === 2) {
-        return '<span class="badge bg-warning text-dark position-absolute top-0 end-0 m-2" style="z-index: 10;">T</span>';
-    } else if (weaponTeam === 3) {
-        return '<span class="badge bg-info text-dark position-absolute top-0 end-0 m-2" style="z-index: 10;">CT</span>';
+function getTeamBadge(label) {
+    if (!label) {
+        return '';
     }
+
+    let badgeClass = 'bg-secondary text-light';
+    if (label === 'T') {
+        badgeClass = 'bg-warning text-dark';
+    } else if (label === 'CT') {
+        badgeClass = 'bg-info text-dark';
+    }
+
+    return `<span class="badge ${badgeClass} position-absolute top-0 start-0 m-2" style="z-index: 10;">${label}</span>`;
+}
+
+// Helper to build a single badge for all matches
+function getTeamBadgeForMatches(matches) {
+    if (!matches || matches.length === 0) {
+        return '';
+    }
+
+    const teams = new Set(matches.map(match => match.weapon_team));
+    if (teams.has(2) && teams.has(3)) {
+        return getTeamBadge('Both');
+    }
+
+    if (teams.has(2)) {
+        return getTeamBadge('T');
+    }
+
+    if (teams.has(3)) {
+        return getTeamBadge('CT');
+    }
+
     return '';
 }
 

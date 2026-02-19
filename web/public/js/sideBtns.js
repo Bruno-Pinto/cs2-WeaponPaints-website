@@ -98,16 +98,22 @@ const showDefaults = (type) => {
 
         defaultsObject.forEach(weapon => {
             if (weapon.weapon_type == type) {
-                const skinWeapon = selectedSkins.find(element => {
-                    if (element.weapon_defindex == weaponIds[weapon.weapon_name]) {
-                        return true
-                    }
-                    return false
-                })                 
+                const matchingSkins = isSelectedForTeam(selectedSkins, {
+                    weapon_defindex: weaponIds[weapon.weapon_name]
+                });
 
-                if (typeof skinWeapon != 'undefined') {
-                    changeSkinTemplate(weapon, langObject, selectedKnife)
-                    changeSkinCard(weapon, skinWeapon)
+                const allMatches = getAllSelectedForItem(selectedSkins, {
+                    weapon_defindex: weaponIds[weapon.weapon_name]
+                });
+
+                let teamBadges = '';
+                if (selectedTeam === 'both' && allMatches.length > 0) {
+                    teamBadges = getTeamBadgeForMatches(allMatches);
+                }
+
+                if (matchingSkins && matchingSkins.length > 0) {
+                    changeSkinTemplate(weapon, langObject, selectedKnife, teamBadges)
+                    changeSkinCard(weapon, matchingSkins[0])
                 } else {
                     defaultsTemplate(weapon, langObject, lang)
                 }        
@@ -266,104 +272,76 @@ window.resetSkin = (weaponid, steamid) => {
 }
 
 socket.on('skin-reset', data => {
-    console.log(data)
+    const teamMap = { 'both': [2, 3], 'ct': [3], 't': [2] };
+    const teamsToClear = teamMap[selectedTeam] || [2, 3];
 
-    const weapon_name = getKeyByValue(weaponIds, data.weaponid)
-
-    document.getElementById(`img-${weapon_name}`).src = document.getElementById(`img-${weapon_name}`).alt
-    document.getElementById(`img-${weapon_name}`).style.filter = ''
-    document.getElementById(`reset-${weapon_name}`).outerHTML = ''
-    document.getElementById(`skinPaintName-${weapon_name}`).innerHTML = `<small>${langObject.defaultSkin}</small>`
-
-    let tempSkins = [];
-
-    selectedSkins.forEach(element => {
-        if (element.weapon_defindex != data.weaponid) {
-            tempSkins.push(element)
-        }
+    selectedSkins = selectedSkins.filter(element => {
+        return element.weapon_defindex != data.weaponid || !teamsToClear.includes(element.weapon_team);
     })
-    
-    selectedSkins = tempSkins
+
+    refreshCurrentCategory()
 })
 
 socket.on('knife-changed', data => {
-    let elms = document.getElementsByClassName("weapon_knife")
- 
-    for(var i = 0; i < elms.length; i++) {
-        elms[i].classList.remove('active-card')
-        const button = elms[i].querySelectorAll('button')
-        button[button.length - 1].onclick = function() { changeKnife(`${button[button.length - 1].getAttribute('data-knife')}`) }
-    }
-
+    selectedKnives = data.knives
     selectedKnife.knife = data.knife
 
-    document.getElementById(data.knife).classList.add('active-card')
-    const button = document.getElementById(data.knife).querySelectorAll('button')
-    button[button.length - 1].onclick = function() { knifeSkins(`${data.knife}`) }
-    document.getElementById(`loading-${data.knife}`).style.opacity = 0
-    document.getElementById(`loading-${data.knife}`).style.visibility = 'hidden'
+    refreshCurrentCategory()
+
+    const loadingElement = document.getElementById(`loading-${data.knife}`)
+    if (loadingElement) {
+        loadingElement.style.opacity = 0
+        loadingElement.style.visibility = 'hidden'
+    }
 })
 
 socket.on('glove-changed', data => {
-    let elms = document.getElementsByClassName("weapon_knife")
- 
-    for(var i = 0; i < elms.length; i++) {
-        elms[i].classList.remove('active-card')
-        const button = elms[i].querySelectorAll('button')
-        button[button.length - 1].onclick = function() { changeGlove(`${button[button.length - 1].getAttribute('data-knife')}`) }
+    selectedGloves = data.gloves
+
+    refreshCurrentCategory()
+
+    const gloves = getKeyByValue(weaponIds, data.weaponid)
+    const loadingElement = document.getElementById(`loading-${gloves}`)
+    if (loadingElement) {
+        loadingElement.style.opacity = 0
+        loadingElement.style.visibility = 'hidden'
     }
-
-    const gloves = getKeyByValue(weaponIds, data.knife)
-
-    selectedGloves.weapon_defindex = data.knife
-
-    document.getElementById(gloves).classList.add('active-card')
-    const button = document.getElementById(gloves).querySelectorAll('button')
-    button[button.length - 1].onclick = function() { knifeSkins(`${gloves}`) }
-    document.getElementById(`loading-${gloves}`).style.opacity = 0
-    document.getElementById(`loading-${gloves}`).style.visibility = 'hidden'
 })
 
 socket.on('skin-changed', data => {
-    let elms = document.getElementsByClassName("weapon-card")
- 
-    for(var i = 0; i < elms.length; i++) {
-        elms[i].classList.remove('active-card')
-    }
-
     selectedSkins = data.newSkins
 
-    document.getElementById(`weapon-${data.weaponid}-${data.paintid}`).classList.add('active-card')
-    document.getElementById(`loading-${data.weaponid}-${data.paintid}`).style.opacity = 0
-    document.getElementById(`loading-${data.weaponid}-${data.paintid}`).style.visibility = 'hidden'
+    refreshCurrentCategory()
+
+    const loadingElement = document.getElementById(`loading-${data.weaponid}-${data.paintid}`)
+    if (loadingElement) {
+        loadingElement.style.opacity = 0
+        loadingElement.style.visibility = 'hidden'
+    }
 })
 
 socket.on('agent-changed', data => {
-    let elms = document.getElementsByClassName("weapon-card")
- 
-    for(var i = 0; i < elms.length; i++) {
-        elms[i].classList.remove('active-card')
+    selectedAgents = data.agents
+
+    refreshCurrentCategory()
+
+    const loadingElement = document.getElementById(`loading-${data.currentAgent}`)
+    if (loadingElement) {
+        loadingElement.style.opacity = 0
+        loadingElement.style.visibility = 'hidden'
     }
-
-    selectedAgents = data.agents[0]
-
-    document.getElementById(`agent-${data.currentAgent}`).classList.add('active-card')
-    document.getElementById(`loading-${data.currentAgent}`).style.opacity = 0
-    document.getElementById(`loading-${data.currentAgent}`).style.visibility = 'hidden'
 })
 
 socket.on('music-changed', data => {
-    let elms = document.getElementsByClassName("weapon-card")
- 
-    for(var i = 0; i < elms.length; i++) {
-        elms[i].classList.remove('active-card')
+    selectedMusic = data.music
+
+    refreshCurrentCategory()
+
+    const loadingElement = document.getElementById(`loading-${data.currentMusic}`)
+    if (loadingElement) {
+        loadingElement.style.opacity = 0
+        loadingElement.style.visibility = 'hidden'
     }
-
-    selectedMusic = data.music[0]
-
-    document.getElementById(`music-${data.currentMusic}`).classList.add('active-card')
-    document.getElementById(`loading-${data.currentMusic}`).style.opacity = 0
-    document.getElementById(`loading-${data.currentMusic}`).style.visibility = 'hidden'
 })
 
 window.knifeSkins = (knifeType) => {
@@ -420,9 +398,7 @@ window.knifeSkins = (knifeType) => {
             // Generate team badges for "both" mode
             let teamBadges = '';
             if (selectedTeam === 'both' && matchingSkins && matchingSkins.length > 0) {
-                matchingSkins.forEach(match => {
-                    teamBadges += getTeamBadge(match.weapon_team);
-                });
+                teamBadges = getTeamBadgeForMatches(matchingSkins);
             }
 
             let card = document.createElement('div')
