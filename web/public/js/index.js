@@ -271,12 +271,6 @@ socket.on('params-changed', () => {
     const modal = bootstrap.Modal.getInstance(modalElement)
     if (modal) {
         modal.hide()
-        // Remove the backdrop completely
-        document.querySelectorAll('.modal-backdrop').forEach(el => el.remove())
-        // Restore body styles that modal adds
-        document.body.classList.remove('modal-open')
-        document.body.style.overflow = ''
-        document.body.style.paddingRight = ''
     }
     showSuccessNotification()
 })

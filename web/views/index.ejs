@@ -63,7 +63,7 @@
                 <a class="navbar-brand" href="#"><%= config.name %></a>      
                 <div class="nav-item d-flex align-items-center">
                     <% if (config.connect.show) { %>
-                        <a href="steam://connect/<%= config.connect.serverIp %>:<%= config.connect.serverPort %>?appid=730/<%= config.connect.serverPassword %>" class="btn btn-outline-warning rounded-pill d-none d-md-block"><small><%= lang.connect %></small></a>
+                        <a href="steam://connect/<%= config.connect.serverIp %>:<%= config.connect.serverPort %>?appid=730&password=<%= config.connect.serverPassword %>" class="btn btn-outline-warning rounded-pill d-none d-md-block"><small><%= lang.connect %></small></a>
                     <% } %>
                 </div>
             </div>
@@ -77,10 +77,11 @@
                             <img src="<%= user.photos[1].value%>" alt="" height="30" class="rounded-pill">
                         </div>
                             <ul class="dropdown-menu">
-                                
+                                <% if (config.connect.show) { %>
+                                    <a class="dropdown-item text-warning d-block d-md-none" href="steam://connect/<%= config.connect.serverIp %>:<%= config.connect.serverPort %>?appid=730&password=<%= config.connect.serverPassword %>"><small><%= lang.connect %></small></a>
+                                <% } %>
                                 <a class="dropdown-item text-danger" href="api/logout"><%= lang.navLogout %></a>
                                 <a class="dropdown-item text-danger" href="api/delete"><%= lang.navDelete %></a>
-                                <a class="dropdown-item text-warning d-block d-md-none" href="<%= config.connect.url %>"><small><%= lang.connect %></small></a>
                             </ul>
                        
                 <% } %>
