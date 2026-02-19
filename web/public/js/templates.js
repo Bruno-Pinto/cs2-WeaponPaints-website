@@ -60,9 +60,9 @@ window.changeKnifeSkinTemplate = (knife, langObject, selectedKnife, matchingItem
 
     // Generate team badges
         let teamBadges = '';
-        if (window.selectedTeam === 'both' && matchingItems && matchingItems.length > 0) {
-        teamBadges = getTeamBadgeForMatches(matchingItems);
-    }
+        if (matchingItems && matchingItems.length > 0) {
+            teamBadges = getTeamBadgeForMatches(matchingItems);
+        }
 
     card.innerHTML = `
     <div class="rounded-3 d-flex flex-column card-common weapon-card ${active} weapon_knife position-relative" id="${knife.weapon_name}">
@@ -83,23 +83,88 @@ window.changeKnifeSkinTemplate = (knife, langObject, selectedKnife, matchingItem
                 <p class="m-0 text-light weapon-skin-title mx-auto text-center">${knife.paint_name}</p>
         </a>
         <button onclick="knifeSkins(\'${knife.weapon_name}\')" class="btn btn-primary text-warning mx-auto my-2" style="z-index: 1;"><small>${langObject.changeSkin}</small></button>
+        <div class="d-flex gap-2 px-3 mb-2">
+            <button class="btn btn-sm btn-outline-light w-100" onclick="changeKnife('${knife.weapon_name}', 't')">Equip T</button>
+            <button class="btn btn-sm btn-outline-light w-100" onclick="changeKnife('${knife.weapon_name}', 'ct')">Equip CT</button>
+            <button class="btn btn-sm btn-outline-warning w-100" onclick="changeKnife('${knife.weapon_name}', 'both')">Both</button>
+        </div>
     </div>
     `
 
     document.getElementById('skinsContainer').appendChild(card)  
 }
 
-window.changeSkinCard = (weapon, selectedSkin) => {
-    skinsObject.forEach(skinWeapon => {
-        if (weaponIds[skinWeapon.weapon.id] == weapon.weapon_defindex && skinWeapon.paint_index == selectedSkin.weapon_paint_id) {
-            if (skinWeapon.category.id == 'sfui_invpanel_filter_melee') {
-                skinWeapon.rarity.color = "#caab05"
-            }
-            
-            document.getElementById(`img-${weapon.weapon_name}`).src = skinWeapon.image
-            document.getElementById(`img-${weapon.weapon_name}`).style = `filter: drop-shadow(0px 0px 20px ${skinWeapon.rarity.color});`
+window.changeSkinCard = (weapon, selectedSkin, secondarySkin = null) => {
+    const findSkin = (skinRow) => {
+        if (!skinRow) return null;
+        return skinsObject.find(skinWeapon => {
+            return weaponIds[skinWeapon.weapon.id] == weapon.weapon_defindex && skinWeapon.paint_index == skinRow.weapon_paint_id;
+        }) || null;
+    };
+
+    const primarySkin = findSkin(selectedSkin);
+    const secondary = secondarySkin ? findSkin(secondarySkin) : null;
+
+    if (!primarySkin) {
+        return;
+    }
+
+    if (primarySkin.category && primarySkin.category.id == 'sfui_invpanel_filter_melee') {
+        primarySkin.rarity.color = "#caab05"
+    }
+    if (secondary && secondary.category && secondary.category.id == 'sfui_invpanel_filter_melee') {
+        secondary.rarity.color = "#caab05"
+    }
+
+    const imgId = `img-${weapon.weapon_name}`;
+    let existingImg = document.getElementById(imgId);
+    const wrapperId = `img-wrap-${weapon.weapon_name}`;
+    const existingWrapper = document.getElementById(wrapperId);
+
+    if (secondary && weapon.weapon_type !== 'sfui_invpanel_filter_melee' && weapon.weapon_type !== 'sfui_invpanel_filter_gloves') {
+        let wrapper = existingWrapper;
+
+        if (!wrapper) {
+            wrapper = document.createElement('div');
+            wrapper.id = wrapperId;
+            wrapper.className = existingImg ? existingImg.className : 'weapon-img mx-auto my-3';
+            wrapper.style.display = 'flex';
+            const width = existingImg && existingImg.clientWidth ? `${existingImg.clientWidth}px` : '100%';
+            const height = existingImg && existingImg.clientHeight ? `${existingImg.clientHeight}px` : '100%';
+            wrapper.style.width = width;
+            wrapper.style.height = height;
+            wrapper.style.alignItems = 'center';
+            wrapper.style.justifyContent = 'center';
+            wrapper.style.gap = '0';
         }
-    })
+
+        wrapper.innerHTML = `
+            <img src="${primarySkin.image}" style="width: 50%; height: 100%; object-fit: contain; filter: drop-shadow(0px 0px 20px ${primarySkin.rarity.color});" loading="lazy" alt="${primarySkin.pattern ? primarySkin.pattern.name : ''}">
+            <img src="${secondary.image}" style="width: 50%; height: 100%; object-fit: contain; filter: drop-shadow(0px 0px 20px ${secondary.rarity.color});" loading="lazy" alt="${secondary.pattern ? secondary.pattern.name : ''}">
+        `;
+
+        if (existingImg) {
+            existingImg.replaceWith(wrapper);
+        }
+        return;
+    }
+
+    if (!existingImg && existingWrapper) {
+        const newImg = document.createElement('img');
+        newImg.id = imgId;
+        newImg.className = existingWrapper.className || 'weapon-img mx-auto my-3';
+        newImg.loading = 'lazy';
+        newImg.alt = primarySkin.pattern ? primarySkin.pattern.name : '';
+        existingWrapper.replaceWith(newImg);
+        existingImg = newImg;
+    }
+
+    if (!existingImg) {
+        return;
+    }
+
+    existingImg.src = primarySkin.image;
+    existingImg.style = `filter: drop-shadow(0px 0px 20px ${primarySkin.rarity.color});`
 }
 
 window.knivesTemplate = (knife, langObject, selectedKnife) => {
@@ -112,9 +177,9 @@ window.knivesTemplate = (knife, langObject, selectedKnife) => {
 
     // Generate team badges
         let teamBadges = '';
-        if (window.selectedTeam === 'both' && allMatches.length > 0) {
-        teamBadges = getTeamBadgeForMatches(allMatches);
-    }
+        if (allMatches.length > 0) {
+            teamBadges = getTeamBadgeForMatches(allMatches);
+        }
 
     card.innerHTML = `
     <div class="rounded-3 d-flex flex-column card-common weapon-card ${active} weapon_knife position-relative" id="${knife.weapon_name}">
@@ -131,6 +196,11 @@ window.knivesTemplate = (knife, langObject, selectedKnife) => {
                 <p class="m-0 text-light weapon-skin-title mx-auto text-center">${knife.paint_name}</p>
         </a>
         <button onclick="knifeSkins(\'${knife.weapon_name}\')" class="btn btn-primary text-warning mx-auto my-2" style="z-index: 1;"><small>${langObject.changeSkin}</small></button>
+        <div class="d-flex gap-2 px-3 mb-2">
+            <button class="btn btn-sm btn-outline-light w-100" onclick="changeKnife('${knife.weapon_name}', 't')">Equip T</button>
+            <button class="btn btn-sm btn-outline-light w-100" onclick="changeKnife('${knife.weapon_name}', 'ct')">Equip CT</button>
+            <button class="btn btn-sm btn-outline-warning w-100" onclick="changeKnife('${knife.weapon_name}', 'both')">Both</button>
+        </div>
     </div>
     `
 
@@ -147,9 +217,9 @@ window.glovesTemplate = (gloves, langObject, selectedGloves) => {
 
     // Generate team badges
         let teamBadges = '';
-        if (window.selectedTeam === 'both' && allMatches.length > 0) {
-        teamBadges = getTeamBadgeForMatches(allMatches);
-    }
+        if (allMatches.length > 0) {
+            teamBadges = getTeamBadgeForMatches(allMatches);
+        }
 
     card.innerHTML = `
     <div class="rounded-3 d-flex flex-column card-common weapon-card ${active} weapon_knife position-relative" id="${gloves.weapon_name}">
@@ -166,6 +236,11 @@ window.glovesTemplate = (gloves, langObject, selectedGloves) => {
                 <p class="m-0 text-light weapon-skin-title mx-auto text-center">${gloves.paint_name}</p>
         </a>
         <button onclick="knifeSkins(\'${gloves.weapon_name}\')" class="btn btn-primary text-warning mx-auto my-2" style="z-index: 1;"><small>${langObject.changeSkin}</small></button>
+        <div class="d-flex gap-2 px-3 mb-2">
+            <button class="btn btn-sm btn-outline-light w-100" onclick="changeGlove('${gloves.weapon_name}', 't')">Equip T</button>
+            <button class="btn btn-sm btn-outline-light w-100" onclick="changeGlove('${gloves.weapon_name}', 'ct')">Equip CT</button>
+            <button class="btn btn-sm btn-outline-warning w-100" onclick="changeGlove('${gloves.weapon_name}', 'both')">Both</button>
+        </div>
     </div>
     `
 
@@ -188,7 +263,7 @@ window.changeGlovesSkinTemplate = (gloves, langObject, selectedGloves, matchingI
 
     // Generate team badges
     let teamBadges = '';
-        if (window.selectedTeam === 'both' && matchingItems && matchingItems.length > 0) {
+    if (matchingItems && matchingItems.length > 0) {
         teamBadges = getTeamBadgeForMatches(matchingItems);
     }
 
@@ -211,6 +286,11 @@ window.changeGlovesSkinTemplate = (gloves, langObject, selectedGloves, matchingI
                 <p class="m-0 text-light weapon-skin-title mx-auto text-center">${gloves.paint_name}</p>
         </a>
         <button onclick="knifeSkins(\'${gloves.weapon_name}\')" class="btn btn-primary text-warning mx-auto my-2" style="z-index: 1;"><small>${langObject.changeSkin}</small></button>
+        <div class="d-flex gap-2 px-3 mb-2">
+            <button class="btn btn-sm btn-outline-light w-100" onclick="changeGlove('${gloves.weapon_name}', 't')">Equip T</button>
+            <button class="btn btn-sm btn-outline-light w-100" onclick="changeGlove('${gloves.weapon_name}', 'ct')">Equip CT</button>
+            <button class="btn btn-sm btn-outline-warning w-100" onclick="changeGlove('${gloves.weapon_name}', 'both')">Both</button>
+        </div>
     </div>
     `
 
@@ -258,7 +338,7 @@ window.showAgents = (type) => {
 
             // Generate team badges
             let teamBadges = '';
-                if (window.selectedTeam === 'both' && matchingAgents && matchingAgents.length > 0) {
+            if (matchingAgents && matchingAgents.length > 0) {
                 const agentColumn = type === 'ct' ? 'agent_ct' : 'agent_t';
                 const matchesForAgent = matchingAgents.filter(match => match[agentColumn] == element.model);
                 teamBadges = getTeamBadgeForMatches(matchesForAgent);
@@ -314,7 +394,7 @@ window.showMusicKits = () => {
             
             // Generate team badges
             let teamBadges = '';
-                if (window.selectedTeam === 'both' && matchingMusic && matchingMusic.length > 0) {
+            if (matchingMusic && matchingMusic.length > 0) {
                 teamBadges = getTeamBadgeForMatches(matchingMusic);
             }
 

@@ -56,9 +56,9 @@ const showDefaults = (type) => {
         document.getElementById('skinsContainer').setAttribute('data-category', 'knives');
         defaultsObject.forEach(knife => {
             if (knife.weapon_type == 'sfui_invpanel_filter_melee') {
-                const matchingItems = isSelectedForTeam(selectedKnives, {knife: knife.weapon_name});
+                const matchingItems = getAllSelectedForItem(selectedKnives, {knife: knife.weapon_name});
 
-                if (matchingItems) {
+                if (matchingItems.length > 0) {
                     changeKnifeSkinTemplate(knife, langObject, selectedKnife, matchingItems)
                     const skinWeapon = selectedSkins.find(element => element.weapon_defindex == weaponIds[knife.weapon_name]);
                     if (typeof skinWeapon != 'undefined') {
@@ -74,17 +74,18 @@ const showDefaults = (type) => {
         document.getElementById('skinsContainer').setAttribute('data-category', 'gloves');
         defaultsObject.forEach(glove => {
             if (glove.weapon_type == 'sfui_invpanel_filter_gloves') {
-                const matchingItems = isSelectedForTeam(selectedGloves, {weapon_defindex: weaponIds[glove.weapon_name]});
+                const matchingItems = getAllSelectedForItem(selectedGloves, {weapon_defindex: weaponIds[glove.weapon_name]});
+                const matchingSkins = getAllSelectedForItem(selectedSkins, {weapon_defindex: weaponIds[glove.weapon_name]});
+                const skinToShow = matchingSkins.length > 0 ? matchingSkins[0] : null;
 
-                if (matchingItems) {
+                if (matchingItems.length > 0) {
                     changeGlovesSkinTemplate(glove, langObject, selectedGloves, matchingItems)
-                    const skinWeapon = selectedSkins.find(element => element.weapon_defindex == weaponIds[glove.weapon_name]);
-                    if (typeof skinWeapon != 'undefined') {
-                        changeSkinCard(glove, skinWeapon)
-                    }
                 } else {
                     glovesTemplate(glove, langObject, selectedGloves)
                 }    
+                if (skinToShow) {
+                    changeSkinCard(glove, skinToShow)
+                }
                 
             }
         })
@@ -100,22 +101,18 @@ const showDefaults = (type) => {
 
         defaultsObject.forEach(weapon => {
             if (weapon.weapon_type == type) {
-                const matchingSkins = isSelectedForTeam(selectedSkins, {
+                const matchingSkins = getAllSelectedForItem(selectedSkins, {
                     weapon_defindex: weaponIds[weapon.weapon_name]
                 });
 
-                const allMatches = getAllSelectedForItem(selectedSkins, {
-                    weapon_defindex: weaponIds[weapon.weapon_name]
-                });
+                const ctSkin = matchingSkins.find(match => match.weapon_team == 3) || null;
+                const tSkin = matchingSkins.find(match => match.weapon_team == 2) || null;
+                const primarySkin = ctSkin || tSkin;
+                const secondarySkin = ctSkin && tSkin && ctSkin.weapon_paint_id != tSkin.weapon_paint_id ? tSkin : null;
 
-                let teamBadges = '';
-                if (window.selectedTeam === 'both' && allMatches.length > 0) {
-                    teamBadges = getTeamBadgeForMatches(allMatches);
-                }
-
-                if (matchingSkins && matchingSkins.length > 0) {
-                    changeSkinTemplate(weapon, langObject, selectedKnife, teamBadges)
-                    changeSkinCard(weapon, matchingSkins[0])
+                if (primarySkin) {
+                    changeSkinTemplate(weapon, langObject, selectedKnife, '')
+                    changeSkinCard(weapon, primarySkin, secondarySkin)
                 } else {
                     defaultsTemplate(weapon, langObject, lang)
                 }        
@@ -236,20 +233,20 @@ sideBtns.forEach(btn => {
     }
 })
 
-window.changeKnife = (weaponid) => {
-    socket.emit('change-knife', {weaponid: weaponid, steamUserId: user.id, team: window.selectedTeam})
+window.changeKnife = (weaponid, team = 'both') => {
+    socket.emit('change-knife', {weaponid: weaponid, steamUserId: user.id, team: team})
     document.getElementById(`loading-${weaponid}`).style.visibility = 'visible'
     document.getElementById(`loading-${weaponid}`).style.opacity = 1
 }
 
-window.changeGlove = (weaponid) => {
-    socket.emit('change-glove', {weaponid: weaponIds[weaponid], steamUserId: user.id, team: window.selectedTeam})
+window.changeGlove = (weaponid, team = 'both') => {
+    socket.emit('change-glove', {weaponid: weaponIds[weaponid], steamUserId: user.id, team: team})
     document.getElementById(`loading-${weaponid}`).style.visibility = 'visible'
     document.getElementById(`loading-${weaponid}`).style.opacity = 1
 }
 
-window.changeSkin = (steamid, weaponid, paintid) => {
-    socket.emit('change-skin', {steamid: steamid, weaponid: weaponid, paintid: paintid, team: window.selectedTeam})
+window.changeSkin = (steamid, weaponid, paintid, team = 'both') => {
+    socket.emit('change-skin', {steamid: steamid, weaponid: weaponid, paintid: paintid, team: team})
     document.getElementById(`loading-${weaponid}-${paintid}`).style.visibility = 'visible'
     document.getElementById(`loading-${weaponid}-${paintid}`).style.opacity = 1
 }
@@ -261,21 +258,21 @@ window.changeAgent = (steamid, model, team) => {
     document.getElementById(`loading-${model}`).style.opacity = 1
 }
 
-window.changeMusic = (steamid, id) => {
+window.changeMusic = (steamid, id, team = 'both') => {
     console.log(steamid, id)
-    socket.emit('change-music', {steamid: steamid, id: id, team: window.selectedTeam})
+    socket.emit('change-music', {steamid: steamid, id: id, team: team})
     document.getElementById(`loading-${id}`).style.visibility = 'visible'
     document.getElementById(`loading-${id}`).style.opacity = 1
 }
 
-window.resetSkin = (weaponid, steamid) => {
+window.resetSkin = (weaponid, steamid, team = 'both') => {
     console.log(steamid, weaponid)
-    socket.emit('reset-skin', {steamid: user.id, weaponid: weaponid, team: window.selectedTeam})
+    socket.emit('reset-skin', {steamid: user.id, weaponid: weaponid, team: team})
 }
 
 socket.on('skin-reset', data => {
     const teamMap = { 'both': [2, 3], 'ct': [3], 't': [2] };
-    const teamsToClear = teamMap[window.selectedTeam] || [2, 3];
+    const teamsToClear = teamMap[data.team || 'both'] || [2, 3];
 
     selectedSkins = selectedSkins.filter(element => {
         return element.weapon_defindex != data.weaponid || !teamsToClear.includes(element.weapon_team);
@@ -349,6 +346,8 @@ socket.on('music-changed', data => {
 window.knifeSkins = (knifeType) => {
     // clear main container
     document.getElementById('skinsContainer').innerHTML = ''
+    document.getElementById('skinsContainer').setAttribute('data-category', 'skins');
+    window.currentSkinWeaponType = knifeType
 
     skinsObject.forEach(element => {
         if (element.weapon.id == knifeType) {
@@ -386,20 +385,20 @@ window.knifeSkins = (knifeType) => {
             }
 
             // Check if skin is selected for current team
-            const matchingSkins = isSelectedForTeam(selectedSkins, {
+            const matchingSkins = getAllSelectedForItem(selectedSkins, {
                 weapon_paint_id: element.paint_index,
                 weapon_defindex: weaponIds[element.weapon.id]
             });
 
-            if (matchingSkins && matchingSkins.length > 0) {
+            if (matchingSkins.length > 0) {
                 active = 'active-card'
                 float = matchingSkins[0].weapon_wear
                 pattern = matchingSkins[0].weapon_seed
             }
 
-            // Generate team badges for "both" mode
+            // Always show team badges when a skin is selected
             let teamBadges = '';
-            if (window.selectedTeam === 'both' && matchingSkins && matchingSkins.length > 0) {
+            if (matchingSkins.length > 0) {
                 teamBadges = getTeamBadgeForMatches(matchingSkins);
             }
 
@@ -407,7 +406,7 @@ window.knifeSkins = (knifeType) => {
             card.classList.add('col-6', 'col-sm-4', 'col-md-3', 'p-2')
 
             card.innerHTML = `
-                <div onclick="changeSkin(\'${user.id}\', \'${weaponIds[element.weapon.id]}\', ${element.paint_index})" id="weapon-${weaponIds[element.weapon.id]}-${element.paint_index}" class="weapon-card rounded-3 d-flex flex-column ${active} ${bgColor} contrast-reset pb-2 position-relative" data-type="skinCard" data-btn-type="${weaponIds[element.weapon.id]}-${element.paint_index}">
+                <div id="weapon-${weaponIds[element.weapon.id]}-${element.paint_index}" class="weapon-card rounded-3 d-flex flex-column ${active} ${bgColor} contrast-reset pb-2 position-relative" data-type="skinCard" data-btn-type="${weaponIds[element.weapon.id]}-${element.paint_index}">
                     ${teamBadges}
                     <div style="z-index: 3;" class="loading-card d-flex justify-content-center align-items-center w-100 h-100" id="loading-${weaponIds[element.weapon.id]}-${element.paint_index}">
                         <div class="spinner-border spinner-border-xl" role="status">
@@ -433,6 +432,15 @@ window.knifeSkins = (knifeType) => {
                     <h5 class="weapon-skin-title text-roboto ms-3">
                         ${element.pattern.name} ${phase}
                     </h5>
+
+                    <div class="d-flex gap-2 px-3 mt-auto">
+                        <button class="btn btn-sm btn-outline-light w-100" onclick="resetSkin(${weaponIds[element.weapon.id]}, '${user.id}', 'both')">Unequip</button>
+                    </div>
+                    <div class="d-flex gap-2 px-3 mt-2">
+                        <button class="btn btn-sm btn-primary w-100" onclick="changeSkin('${user.id}', '${weaponIds[element.weapon.id]}', ${element.paint_index}, 't')">Equip T</button>
+                        <button class="btn btn-sm btn-primary w-100" onclick="changeSkin('${user.id}', '${weaponIds[element.weapon.id]}', ${element.paint_index}, 'ct')">Equip CT</button>
+                        <button class="btn btn-sm btn-warning w-100" onclick="changeSkin('${user.id}', '${weaponIds[element.weapon.id]}', ${element.paint_index}, 'both')">Both</button>
+                    </div>
                 </div>
             `
 

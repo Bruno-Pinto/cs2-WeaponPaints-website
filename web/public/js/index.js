@@ -3,7 +3,8 @@ const socket = window.socket
 
 let currentWeaponId = ''
 let currentPaintId = ''
-window.selectedTeam = 'both' // Default team filter
+window.currentSkinWeaponType = ''
+window.selectedTeam = 'both'
 
 // Refresh current view to apply filter
 function refreshCurrentCategory() {
@@ -23,6 +24,11 @@ function refreshCurrentCategory() {
         case 'ct-agents': showCTAgents(); break;
         case 't-agents': showTAgents(); break;
         case 'music': showMusic(); break;
+        case 'skins':
+            if (window.currentSkinWeaponType) {
+                knifeSkins(window.currentSkinWeaponType);
+            }
+            break;
     }
 }
 
@@ -31,9 +37,15 @@ window.refreshCurrentCategory = refreshCurrentCategory
 // Team filter management
 function setTeamFilter(team) {
     window.selectedTeam = team;
+    if (team !== 'both') {
+        window.lastNonBothTeam = team;
+    }
 
     // Update button states
-    document.getElementById('teamBoth').className = team === 'both' ? 'btn btn-primary active' : 'btn btn-outline-primary';
+    const bothButton = document.getElementById('teamBoth');
+    if (bothButton) {
+        bothButton.className = team === 'both' ? 'btn btn-primary active' : 'btn btn-outline-primary';
+    }
     document.getElementById('teamCT').className = team === 'ct' ? 'btn btn-primary active' : 'btn btn-outline-primary';
     document.getElementById('teamT').className = team === 't' ? 'btn btn-primary active' : 'btn btn-outline-primary';
 

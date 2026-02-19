@@ -106,7 +106,7 @@ module.exports = (io, socket) => {
             await query(`DELETE FROM wp_player_skins WHERE steamid = ${data.steamid} AND weapon_defindex = ${data.weaponid} AND weapon_team = ${weaponTeam}`);
         }
 
-        socket.emit('skin-reset', {weaponid: data.weaponid});
+        socket.emit('skin-reset', {weaponid: data.weaponid, team: data.team || 'both'});
     }
 
     async function changeParams(data) {
