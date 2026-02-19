@@ -5,6 +5,25 @@ let currentWeaponId = ''
 let currentPaintId = ''
 window.currentSkinWeaponType = ''
 window.selectedTeam = 'both'
+window.previousCategory = null
+
+window.goBack = () => {
+    if (window.previousCategory && typeof window[window.previousCategory] === 'function') {
+        window[window.previousCategory]();
+    }
+}
+
+window.showBackButton = (show = true) => {
+    const backBtn = document.getElementById('backBtn');
+    if (backBtn) {
+        backBtn.style.display = show ? '' : 'none';
+    }
+}
+
+window.trackCategory = (categoryName) => {
+    window.previousCategory = categoryName;
+    window.showBackButton(categoryName !== null);
+}
 
 // Refresh current view to apply filter
 function refreshCurrentCategory() {

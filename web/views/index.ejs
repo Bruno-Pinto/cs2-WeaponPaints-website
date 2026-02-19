@@ -170,18 +170,10 @@
 
             </div>
             <div class="col-mb-12 col-lg-10 mb-5">
-                <div class="bg-nav p-3 rounded mb-3 d-flex justify-content-center" id="teamSelector" style="display: none;" aria-hidden="true">
-                    <div class="btn-group" role="group">
-                        <button type="button" class="btn btn-primary active" id="teamBoth" onclick="setTeamFilter('both')">
-                            <i class="fa-solid fa-users"></i> Both Teams
-                        </button>
-                        <button type="button" class="btn btn-outline-primary" id="teamCT" onclick="setTeamFilter('ct')">
-                            <i class="fa-solid fa-shield"></i> CT
-                        </button>
-                        <button type="button" class="btn btn-outline-primary" id="teamT" onclick="setTeamFilter('t')">
-                            <i class="fa-solid fa-skull"></i> T
-                        </button>
-                    </div>
+                <div class="bg-nav p-3 rounded mb-3 d-flex justify-content-start" id="navToolbar">
+                    <button type="button" class="btn btn-outline-primary" id="backBtn" onclick="goBack()" style="display: none;">
+                        <i class="fa-solid fa-arrow-left"></i> Back
+                    </button>
                 </div>
                 <div class="row" id="skinsContainer">
                     <h3 class="text-center mt-5"><%= lang.selectCategory %></h3>

@@ -122,51 +122,62 @@ const showDefaults = (type) => {
 }
 
 const showKnives = () => {
+    window.trackCategory('showKnives')
     sideBtnHandler('sideBtnKnives')
     showDefaults('sfui_invpanel_filter_melee')
 }
 
 const showGloves = () => {
+    window.trackCategory('showGloves')
     sideBtnHandler('sideBtnGloves')
     showDefaults('sfui_invpanel_filter_gloves')
 }
 
-const showPistols = () => {
+conswindow.trackCategory('showPistols')
+    t showPistols = () => {
     sideBtnHandler('sideBtnPistols')
     showDefaults('csgo_inventory_weapon_category_pistols')
 }
-
+window.trackCategory('showRifles')
+    
 const showRifles = () => {
     sideBtnHandler('sideBtnRifles')
     showDefaults('csgo_inventory_weapon_category_rifles')
 }
-
+window.trackCategory('showSniperRifles')
+    
 const showSniperRifles = () => {
     sideBtnHandler('sideBtnSniperRifles')
     showDefaults('csgo_inventory_weapon_category_rifles')
-}
+}window.trackCategory('showPPs')
+    
 
 const showPPs = () => {
     sideBtnHandler('sideBtnPPs')
     showDefaults('csgo_inventory_weapon_category_smgs')
-}
+}window.trackCategory('showShotguns')
+    
 
 const showShotguns = () => {
     sideBtnHandler('sideBtnShotguns')
+    window.trackCategory('showP')
     showDefaults('csgo_inventory_weapon_category_heavy')
 }
 
 const showP = () => {
     sideBtnHandler('sideBtnP')
+    window.trackCategory('showUtility')
     showDefaults('csgo_inventory_weapon_category_heavy')
 }
 
 const showUtility = () => {
     sideBtnHandler('sideBtnUtility')
+    window.trackCategory('showCTAgents')
     showDefaults('csgo_inventory_weapon_category_utility')
 }
 
 const showCTAgents = () => {
+    window.trackCategory('showTAgents')
     sideBtnHandler('sideBtnCTAgents')
     showAgents('ct')
 }
@@ -270,6 +281,31 @@ window.resetSkin = (weaponid, steamid, team = 'both') => {
     socket.emit('reset-skin', {steamid: user.id, weaponid: weaponid, team: team})
 }
 
+window.unequipSkin = (weaponid, steamid, paintid) => {
+    // Find which teams have this skin selected
+    const matchingSkins = selectedSkins.filter(element => {
+        return element.weapon_defindex == weaponid && element.weapon_paint_id == paintid;
+    });
+
+    if (matchingSkins.length === 0) {
+        return;
+    }
+
+    const teams = new Set(matchingSkins.map(skin => skin.weapon_team));
+    let team = 'both';
+
+    if (teams.size === 1) {
+        if (teams.has(2)) {
+            team = 't';
+        } else if (teams.has(3)) {
+            team = 'ct';
+        }
+    }
+
+    resetSkin(weaponid, steamid, team);
+}
+
+
 socket.on('skin-reset', data => {
     const teamMap = { 'both': [2, 3], 'ct': [3], 't': [2] };
     const teamsToClear = teamMap[data.team || 'both'] || [2, 3];
@@ -338,6 +374,7 @@ socket.on('music-changed', data => {
 
     const loadingElement = document.getElementById(`loading-${data.currentMusic}`)
     if (loadingElement) {
+    window.trackCategory('knifeSkins')
         loadingElement.style.opacity = 0
         loadingElement.style.visibility = 'hidden'
     }
@@ -434,7 +471,7 @@ window.knifeSkins = (knifeType) => {
                     </h5>
 
                     <div class="d-flex gap-2 px-3 mt-auto">
-                        <button class="btn btn-sm btn-outline-light w-100" onclick="resetSkin(${weaponIds[element.weapon.id]}, '${user.id}', 'both')">Unequip</button>
+                        <button class="btn btn-sm btn-outline-light w-100" onclick="unequipSkin(${weaponIds[element.weapon.id]}, '${user.id}', ${element.paint_index})">Unequip</button>
                     </div>
                     <div class="d-flex gap-2 px-3 mt-2">
                         <button class="btn btn-sm btn-primary w-100" onclick="changeSkin('${user.id}', '${weaponIds[element.weapon.id]}', ${element.paint_index}, 't')">Equip T</button>
