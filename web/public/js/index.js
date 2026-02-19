@@ -267,9 +267,16 @@ const changeParams = () => {
 
 socket.on('params-changed', () => {
     document.getElementById('modalButton').innerHTML = langObject.change
-    const modal = bootstrap.Modal.getInstance(document.getElementById('patternFloat'))
+    const modalElement = document.getElementById('patternFloat')
+    const modal = bootstrap.Modal.getInstance(modalElement)
     if (modal) {
         modal.hide()
+        // Remove the backdrop completely
+        document.querySelectorAll('.modal-backdrop').forEach(el => el.remove())
+        // Restore body styles that modal adds
+        document.body.classList.remove('modal-open')
+        document.body.style.overflow = ''
+        document.body.style.paddingRight = ''
     }
     showSuccessNotification()
 })

@@ -134,13 +134,14 @@ window.changeSkinCard = (weapon, selectedSkin, secondarySkin = null) => {
             wrapper.style.overflow = 'hidden';
         }
 
-        // Left side: CT skin (primary)
+        // Left side: CT skin (primary) - show left half
+        // Right side: T skin (secondary) - show right half
         wrapper.innerHTML = `
             <div style="position: absolute; left: 0; top: 0; width: 50%; height: 100%; overflow: hidden;">
-                <img src="${primarySkin.image}" style="width: 100%; height: 100%; object-fit: cover; filter: drop-shadow(0px 0px 20px ${primarySkin.rarity.color});" loading="lazy" alt="${primarySkin.pattern ? primarySkin.pattern.name : ''}">
+                <img src="${primarySkin.image}" style="width: 200%; height: 100%; object-fit: cover; object-position: left; filter: drop-shadow(0px 0px 20px ${primarySkin.rarity.color});" loading="lazy" alt="${primarySkin.pattern ? primarySkin.pattern.name : ''}">
             </div>
             <div style="position: absolute; right: 0; top: 0; width: 50%; height: 100%; overflow: hidden;">
-                <img src="${secondary.image}" style="width: 100%; height: 100%; object-fit: cover; filter: drop-shadow(0px 0px 20px ${secondary.rarity.color});" loading="lazy" alt="${secondary.pattern ? secondary.pattern.name : ''}">
+                <img src="${secondary.image}" style="width: 200%; height: 100%; object-fit: cover; object-position: right; filter: drop-shadow(0px 0px 20px ${secondary.rarity.color});" loading="lazy" alt="${secondary.pattern ? secondary.pattern.name : ''}">
             </div>
         `;
 

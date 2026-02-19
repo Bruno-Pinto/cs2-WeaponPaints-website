@@ -114,8 +114,12 @@ module.exports = (io, socket) => {
         data.float = (data.float == '') ? '0.000001' : data.float;
         data.pattern = (data.pattern == '') ? '1' : data.pattern;
 
+        Logger.sql.trace(`User ${data.steamid} changing params - weaponid: ${data.weaponid}, paintid: ${data.paintid}, float: ${data.float}, pattern: ${data.pattern}, teams: ${teams}`);
+
         for (const weaponTeam of teams) {
-            await query(`UPDATE wp_player_skins SET weapon_wear = ${data.float}, weapon_seed = ${data.pattern} WHERE steamid = '${data.steamid}' AND weapon_defindex = ${data.weaponid} AND weapon_paint_id = ${data.paintid} AND weapon_team = ${weaponTeam}`);
+            const updateQuery = `UPDATE wp_player_skins SET weapon_wear = ${data.float}, weapon_seed = ${data.pattern} WHERE steamid = '${data.steamid}' AND weapon_defindex = ${data.weaponid} AND weapon_paint_id = ${data.paintid} AND weapon_team = ${weaponTeam}`;
+            Logger.sql.trace(`Executing update query: ${updateQuery}`);
+            await query(updateQuery);
         }
 
         socket.emit('params-changed');
