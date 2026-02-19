@@ -267,4 +267,23 @@ const changeParams = () => {
 
 socket.on('params-changed', () => {
     document.getElementById('modalButton').innerHTML = langObject.change
+    const modal = bootstrap.Modal.getInstance(document.getElementById('patternFloat'))
+    if (modal) {
+        modal.hide()
+    }
+    showSuccessNotification()
 })
+
+const showSuccessNotification = () => {
+    const notification = document.getElementById('successNotification')
+    if (notification) {
+        notification.style.display = 'block'
+        notification.style.opacity = '1'
+        setTimeout(() => {
+            notification.style.opacity = '0'
+            setTimeout(() => {
+                notification.style.display = 'none'
+            }, 300)
+        }, 2000)
+    }
+}

@@ -128,19 +128,20 @@ window.changeSkinCard = (weapon, selectedSkin, secondarySkin = null) => {
             wrapper = document.createElement('div');
             wrapper.id = wrapperId;
             wrapper.className = existingImg ? existingImg.className : 'weapon-img mx-auto my-3';
-            wrapper.style.display = 'flex';
-            const width = existingImg && existingImg.clientWidth ? `${existingImg.clientWidth}px` : '100%';
-            const height = existingImg && existingImg.clientHeight ? `${existingImg.clientHeight}px` : '100%';
-            wrapper.style.width = width;
-            wrapper.style.height = height;
-            wrapper.style.alignItems = 'center';
-            wrapper.style.justifyContent = 'center';
-            wrapper.style.gap = '0';
+            wrapper.style.position = 'relative';
+            wrapper.style.width = existingImg ? `${existingImg.clientWidth || 181}px` : '181px';
+            wrapper.style.height = existingImg ? `${existingImg.clientHeight || 136}px` : '136px';
+            wrapper.style.overflow = 'hidden';
         }
 
+        // Left side: CT skin (primary)
         wrapper.innerHTML = `
-            <img src="${primarySkin.image}" style="width: 50%; height: 100%; object-fit: contain; filter: drop-shadow(0px 0px 20px ${primarySkin.rarity.color});" loading="lazy" alt="${primarySkin.pattern ? primarySkin.pattern.name : ''}">
-            <img src="${secondary.image}" style="width: 50%; height: 100%; object-fit: contain; filter: drop-shadow(0px 0px 20px ${secondary.rarity.color});" loading="lazy" alt="${secondary.pattern ? secondary.pattern.name : ''}">
+            <div style="position: absolute; left: 0; top: 0; width: 50%; height: 100%; overflow: hidden;">
+                <img src="${primarySkin.image}" style="width: 100%; height: 100%; object-fit: cover; filter: drop-shadow(0px 0px 20px ${primarySkin.rarity.color});" loading="lazy" alt="${primarySkin.pattern ? primarySkin.pattern.name : ''}">
+            </div>
+            <div style="position: absolute; right: 0; top: 0; width: 50%; height: 100%; overflow: hidden;">
+                <img src="${secondary.image}" style="width: 100%; height: 100%; object-fit: cover; filter: drop-shadow(0px 0px 20px ${secondary.rarity.color});" loading="lazy" alt="${secondary.pattern ? secondary.pattern.name : ''}">
+            </div>
         `;
 
         if (existingImg) {
