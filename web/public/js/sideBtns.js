@@ -109,7 +109,7 @@ const showDefaults = (type) => {
                 });
 
                 let teamBadges = '';
-                if (selectedTeam === 'both' && allMatches.length > 0) {
+                if (window.selectedTeam === 'both' && allMatches.length > 0) {
                     teamBadges = getTeamBadgeForMatches(allMatches);
                 }
 
@@ -237,19 +237,19 @@ sideBtns.forEach(btn => {
 })
 
 window.changeKnife = (weaponid) => {
-    socket.emit('change-knife', {weaponid: weaponid, steamUserId: user.id, team: selectedTeam})
+    socket.emit('change-knife', {weaponid: weaponid, steamUserId: user.id, team: window.selectedTeam})
     document.getElementById(`loading-${weaponid}`).style.visibility = 'visible'
     document.getElementById(`loading-${weaponid}`).style.opacity = 1
 }
 
 window.changeGlove = (weaponid) => {
-    socket.emit('change-glove', {weaponid: weaponIds[weaponid], steamUserId: user.id, team: selectedTeam})
+    socket.emit('change-glove', {weaponid: weaponIds[weaponid], steamUserId: user.id, team: window.selectedTeam})
     document.getElementById(`loading-${weaponid}`).style.visibility = 'visible'
     document.getElementById(`loading-${weaponid}`).style.opacity = 1
 }
 
 window.changeSkin = (steamid, weaponid, paintid) => {
-    socket.emit('change-skin', {steamid: steamid, weaponid: weaponid, paintid: paintid, team: selectedTeam})
+    socket.emit('change-skin', {steamid: steamid, weaponid: weaponid, paintid: paintid, team: window.selectedTeam})
     document.getElementById(`loading-${weaponid}-${paintid}`).style.visibility = 'visible'
     document.getElementById(`loading-${weaponid}-${paintid}`).style.opacity = 1
 }
@@ -263,19 +263,19 @@ window.changeAgent = (steamid, model, team) => {
 
 window.changeMusic = (steamid, id) => {
     console.log(steamid, id)
-    socket.emit('change-music', {steamid: steamid, id: id, team: selectedTeam})
+    socket.emit('change-music', {steamid: steamid, id: id, team: window.selectedTeam})
     document.getElementById(`loading-${id}`).style.visibility = 'visible'
     document.getElementById(`loading-${id}`).style.opacity = 1
 }
 
 window.resetSkin = (weaponid, steamid) => {
     console.log(steamid, weaponid)
-    socket.emit('reset-skin', {steamid: user.id, weaponid: weaponid, team: selectedTeam})
+    socket.emit('reset-skin', {steamid: user.id, weaponid: weaponid, team: window.selectedTeam})
 }
 
 socket.on('skin-reset', data => {
     const teamMap = { 'both': [2, 3], 'ct': [3], 't': [2] };
-    const teamsToClear = teamMap[selectedTeam] || [2, 3];
+    const teamsToClear = teamMap[window.selectedTeam] || [2, 3];
 
     selectedSkins = selectedSkins.filter(element => {
         return element.weapon_defindex != data.weaponid || !teamsToClear.includes(element.weapon_team);
@@ -399,7 +399,7 @@ window.knifeSkins = (knifeType) => {
 
             // Generate team badges for "both" mode
             let teamBadges = '';
-            if (selectedTeam === 'both' && matchingSkins && matchingSkins.length > 0) {
+            if (window.selectedTeam === 'both' && matchingSkins && matchingSkins.length > 0) {
                 teamBadges = getTeamBadgeForMatches(matchingSkins);
             }
 

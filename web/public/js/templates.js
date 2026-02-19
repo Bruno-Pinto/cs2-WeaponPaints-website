@@ -59,8 +59,8 @@ window.changeKnifeSkinTemplate = (knife, langObject, selectedKnife, matchingItem
     let active = matchingItems && matchingItems.length > 0 ? 'active-card' : '';
 
     // Generate team badges
-    let teamBadges = '';
-    if (selectedTeam === 'both' && matchingItems && matchingItems.length > 0) {
+        let teamBadges = '';
+        if (window.selectedTeam === 'both' && matchingItems && matchingItems.length > 0) {
         teamBadges = getTeamBadgeForMatches(matchingItems);
     }
 
@@ -111,8 +111,8 @@ window.knivesTemplate = (knife, langObject, selectedKnife) => {
     let active = allMatches.length > 0 ? 'active-card' : '';
 
     // Generate team badges
-    let teamBadges = '';
-    if (selectedTeam === 'both' && allMatches.length > 0) {
+        let teamBadges = '';
+        if (window.selectedTeam === 'both' && allMatches.length > 0) {
         teamBadges = getTeamBadgeForMatches(allMatches);
     }
 
@@ -146,8 +146,8 @@ window.glovesTemplate = (gloves, langObject, selectedGloves) => {
     let active = allMatches.length > 0 ? 'active-card' : '';
 
     // Generate team badges
-    let teamBadges = '';
-    if (selectedTeam === 'both' && allMatches.length > 0) {
+        let teamBadges = '';
+        if (window.selectedTeam === 'both' && allMatches.length > 0) {
         teamBadges = getTeamBadgeForMatches(allMatches);
     }
 
@@ -188,7 +188,7 @@ window.changeGlovesSkinTemplate = (gloves, langObject, selectedGloves, matchingI
 
     // Generate team badges
     let teamBadges = '';
-    if (selectedTeam === 'both' && matchingItems && matchingItems.length > 0) {
+        if (window.selectedTeam === 'both' && matchingItems && matchingItems.length > 0) {
         teamBadges = getTeamBadgeForMatches(matchingItems);
     }
 
@@ -258,7 +258,7 @@ window.showAgents = (type) => {
 
             // Generate team badges
             let teamBadges = '';
-            if (selectedTeam === 'both' && matchingAgents && matchingAgents.length > 0) {
+                if (window.selectedTeam === 'both' && matchingAgents && matchingAgents.length > 0) {
                 const agentColumn = type === 'ct' ? 'agent_ct' : 'agent_t';
                 const matchesForAgent = matchingAgents.filter(match => match[agentColumn] == element.model);
                 teamBadges = getTeamBadgeForMatches(matchesForAgent);
@@ -314,7 +314,7 @@ window.showMusicKits = () => {
             
             // Generate team badges
             let teamBadges = '';
-            if (selectedTeam === 'both' && matchingMusic && matchingMusic.length > 0) {
+                if (window.selectedTeam === 'both' && matchingMusic && matchingMusic.length > 0) {
                 teamBadges = getTeamBadgeForMatches(matchingMusic);
             }
 

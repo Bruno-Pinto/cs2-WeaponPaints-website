@@ -3,7 +3,7 @@ const socket = window.socket
 
 let currentWeaponId = ''
 let currentPaintId = ''
-let selectedTeam = 'both' // Default team filter
+window.selectedTeam = 'both' // Default team filter
 
 // Refresh current view to apply filter
 function refreshCurrentCategory() {
@@ -30,7 +30,7 @@ window.refreshCurrentCategory = refreshCurrentCategory
 
 // Team filter management
 function setTeamFilter(team) {
-    selectedTeam = team;
+    window.selectedTeam = team;
 
     // Update button states
     document.getElementById('teamBoth').className = team === 'both' ? 'btn btn-primary active' : 'btn btn-outline-primary';
@@ -83,7 +83,7 @@ function isSelectedForTeam(items, matchCriteria) {
     if (!items || !Array.isArray(items)) return null;
 
     const teamMap = { 'both': [2, 3], 'ct': [3], 't': [2] };
-    const teamsToCheck = teamMap[selectedTeam] || [2, 3];
+    const teamsToCheck = teamMap[window.selectedTeam] || [2, 3];
 
     const matches = items.filter(item => {
         const criteriaMatch = Object.keys(matchCriteria).every(key => item[key] == matchCriteria[key]);
@@ -230,7 +230,7 @@ const changeParams = () => {
         paintid: paintid,
         float: float,
         pattern: pattern,
-        team: selectedTeam
+        team: window.selectedTeam
     })
 }
 
