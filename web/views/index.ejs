@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -225,6 +224,8 @@
         knife: undefined,
         steamid: undefined,
     }
+    let selectedKnives = []
+    let selectedSkins = []
     let selectedGloves = {
         weapon_defindex: undefined,
         steamid: undefined,
@@ -272,32 +273,32 @@ function updateFloatText(value) {
 
 <% if (typeof knife != 'undefined') { %>
     <script>    
-        let selectedKnives = <%- JSON.stringify(knives) %>;
-        let selectedKnife = <%- JSON.stringify(knife) %>;
+        selectedKnives = <%- JSON.stringify(knives) %>;
+        selectedKnife = <%- JSON.stringify(knife) %>;
     </script>
 <% } %>
 
 <% if (typeof skins != 'undefined') { %>
     <script>    
-        let selectedSkins = <%- JSON.stringify(skins) %>;
+        selectedSkins = <%- JSON.stringify(skins) %>;
     </script>
 <% } %>
 
 <% if (typeof gloves != 'undefined') { %>
     <script>
-        let selectedGloves = <%- JSON.stringify(gloves) %>;
+        selectedGloves = <%- JSON.stringify(gloves) %>;
     </script>
 <% } %>
 
 <% if (typeof agents != 'undefined') { %>
     <script>
-        let selectedAgents = <%- JSON.stringify(agents) %>;
+        selectedAgents = <%- JSON.stringify(agents) %>;
     </script>
 <% } %>
 
 <% if (typeof music != 'undefined') { %>
     <script>
-        let selectedMusic = <%- JSON.stringify(music) %>;
+        selectedMusic = <%- JSON.stringify(music) %>;
     </script>
 <% } %>
 
