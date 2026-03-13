@@ -77,7 +77,7 @@ window.changeKnifeSkinTemplate = (knife, langObject, selectedKnife, matchingItem
             </div>
         </div>
 
-        <a onclick="changeKnife(\'${knife.weapon_name}\', ${selectedKnife.steamid})" class="text-decoration-none d-flex flex-column" style="z-index: 0;">
+        <a class="text-decoration-none d-flex flex-column" style="z-index: 0;">
                 <img src="${knife.image}" class="weapon-img mx-auto my-3" loading="lazy" alt="${knife.image}" id="img-${knife.weapon_name}">
                 
                 <p class="m-0 text-light weapon-skin-title mx-auto text-center">${knife.paint_name}</p>
@@ -192,7 +192,7 @@ window.knivesTemplate = (knife, langObject, selectedKnife) => {
             </div>
         </div>
 
-        <a onclick="changeKnife(\'${knife.weapon_name}\', ${selectedKnife.steamid})" class="text-decoration-none d-flex flex-column" style="z-index: 0;">
+        <a class="text-decoration-none d-flex flex-column" style="z-index: 0;">
                 <img src="${knife.image}" class="weapon-img mx-auto my-3" loading="lazy" alt="${knife.paint_name}">
                 
                 <p class="m-0 text-light weapon-skin-title mx-auto text-center">${knife.paint_name}</p>
@@ -232,7 +232,7 @@ window.glovesTemplate = (gloves, langObject, selectedGloves) => {
             </div>
         </div>
 
-        <a onclick="changeGlove(\'${gloves.weapon_name}\', ${selectedGloves.steamid})" class="text-decoration-none d-flex flex-column" style="z-index: 0; height: 196px;">
+        <a class="text-decoration-none d-flex flex-column" style="z-index: 0; height: 196px;">
                 <img src="${gloves.image}" class="weapon-img mx-auto my-3" loading="lazy" alt="${gloves.paint_name}" style="object-fit: contain; aspect-ratio: 512 / 384;">
                 
                 <p class="m-0 text-light weapon-skin-title mx-auto text-center">${gloves.paint_name}</p>
@@ -282,7 +282,7 @@ window.changeGlovesSkinTemplate = (gloves, langObject, selectedGloves, matchingI
             </div>
         </div>
 
-        <a onclick="changeGlove(\'${gloves.weapon_name}\', ${selectedGloves.steamid})" class="text-decoration-none d-flex flex-column" style="z-index: 0; height: 196px;">
+        <a class="text-decoration-none d-flex flex-column" style="z-index: 0; height: 196px;">
                 <img src="${gloves.image}" class="weapon-img mx-auto my-3" loading="lazy" alt="${gloves.image}" id="img-${gloves.weapon_name}" style="object-fit: contain;">
                 
                 <p class="m-0 text-light weapon-skin-title mx-auto text-center">${gloves.paint_name}</p>
@@ -350,7 +350,7 @@ window.showAgents = (type) => {
             card.classList.add('col-6', 'col-sm-4', 'col-md-3', 'p-2')
 
             card.innerHTML = `
-                <div onclick="changeAgent(\'${steamid}\', \'${element.model}\', \'${type}\')" id="agent-${element.model}" class="weapon-card rounded-3 d-flex flex-column ${active} ${bgColor} contrast-reset pb-2 position-relative" data-type="skinCard" data-btn-type="">
+                <div id="agent-${element.model}" class="weapon-card rounded-3 d-flex flex-column ${active} ${bgColor} contrast-reset pb-2 position-relative" data-type="skinCard" data-btn-type="">
                     ${teamBadges}
                     <div style="z-index: 3;" class="loading-card d-flex justify-content-center align-items-center w-100 h-100" id="loading-${element.model}">
                         <div class="spinner-border spinner-border-xl" role="status">
@@ -367,6 +367,9 @@ window.showAgents = (type) => {
                     <h5 class="weapon-skin-title text-roboto ms-3">
                         ${element.agent_name}
                     </h5>
+                    <div class="d-flex gap-2 px-3 mt-auto">
+                        <button class="btn btn-sm btn-primary w-100" onclick="changeAgent('${steamid}', '${element.model}', '${type}')">Equip</button>
+                    </div>
                 </div>
             `
 
@@ -404,7 +407,7 @@ window.showMusicKits = () => {
             card.classList.add('col-6', 'col-sm-4', 'col-md-3', 'p-2')
 
             card.innerHTML = `
-                <div onclick="changeMusic(\'${steamid}\', \'${music_id}\')" id="music-${music_id}" class="weapon-card card-rare rounded-3 d-flex flex-column ${active} ${bgColor} contrast-reset pb-2 position-relative" data-type="skinCard" data-btn-type="">
+                <div id="music-${music_id}" class="weapon-card card-rare rounded-3 d-flex flex-column ${active} ${bgColor} contrast-reset pb-2 position-relative" data-type="skinCard" data-btn-type="">
                     ${teamBadges}
                     <div style="z-index: 3;" class="loading-card d-flex justify-content-center align-items-center w-100 h-100" id="loading-${music_id}">
                         <div class="spinner-border spinner-border-xl" role="status">
@@ -421,6 +424,9 @@ window.showMusicKits = () => {
                     <h5 class="weapon-skin-title text-roboto ms-3">
                         ${element.name.slice(12)}
                     </h5>
+                    <div class="d-flex gap-2 px-3 mt-auto">
+                        <button class="btn btn-sm btn-primary w-100" onclick="changeMusic('${steamid}', '${music_id}')">Equip</button>
+                    </div>
                 </div>
             `
 
