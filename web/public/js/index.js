@@ -271,6 +271,11 @@ socket.on('params-changed', () => {
     if (modalElement && window.bootstrap && window.bootstrap.Modal) {
         const modal = window.bootstrap.Modal.getOrCreateInstance(modalElement)
         modal.hide()
+        setTimeout(() => {
+            document.querySelectorAll('.modal-backdrop').forEach((backdrop) => backdrop.remove())
+            document.body.classList.remove('modal-open')
+            document.body.style.removeProperty('padding-right')
+        }, 200)
     }
     showSuccessNotification()
 })
