@@ -268,8 +268,8 @@ const changeParams = () => {
 socket.on('params-changed', () => {
     document.getElementById('modalButton').innerHTML = langObject.change
     const modalElement = document.getElementById('patternFloat')
-    const modal = bootstrap.Modal.getInstance(modalElement)
-    if (modal) {
+    if (modalElement && window.bootstrap && window.bootstrap.Modal) {
+        const modal = window.bootstrap.Modal.getOrCreateInstance(modalElement)
         modal.hide()
     }
     showSuccessNotification()
