@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "nodemon --ignore ./web/ .",
     "build": "node builder.js",
-    "updateApi": "node updateApi.js"
+    "updateApi": "node updateApi.js",
+    "updateSkins": "python scripts/update_skins.py --apply"
   },
   "author": "L1teD",
   "license": "LGPL-3.0-or-later",
