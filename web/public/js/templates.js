@@ -1,379 +1,490 @@
-window.socket = io()
-const socket = window.socket
+// Rotates image candidates when legacy hosts fail.
+window.handleImageFallback = (imgElement) => {
+    const raw = imgElement?.dataset?.fallbackImages;
+    if (!raw) return;
 
-let currentWeaponId = ''
-let currentPaintId = ''
-window.currentSkinWeaponType = ''
-window.selectedTeam = 'both'
-window.previousCategory = null
+    const images = raw
+        .split(',')
+        .map(value => decodeURIComponent(value))
+        .filter(Boolean);
 
-window.goBack = () => {
-    if (window.previousCategory && typeof window[window.previousCategory] === 'function') {
-        window[window.previousCategory]();
-    }
-}
+    let index = Number(imgElement.dataset.fallbackIndex || '0');
+    index += 1;
 
-window.showBackButton = (show = true) => {
-    const backBtn = document.getElementById('backBtn');
-    if (backBtn) {
-        backBtn.style.display = show ? '' : 'none';
-    }
-}
-
-window.trackCategory = (categoryName) => {
-    window.previousCategory = categoryName;
-    window.showBackButton(categoryName !== null);
-}
-
-// Refresh current view to apply filter
-function refreshCurrentCategory() {
-    const currentCategory = document.getElementById('skinsContainer').getAttribute('data-category');
-    if (!currentCategory) {
+    if (index >= images.length) {
+        imgElement.onerror = null;
         return;
     }
 
-    switch(currentCategory) {
-        case 'knives': showKnives(); break;
-        case 'gloves': showGloves(); break;
-        case 'pistols': showPistols(); break;
-        case 'rifles': showRifles(); break;
-        case 'pps': showPPs(); break;
-        case 'shotguns': showShotguns(); break;
-        case 'utility': showUtility(); break;
-        case 'ct-agents': showCTAgents(); break;
-        case 't-agents': showTAgents(); break;
-        case 'music': showMusic(); break;
-        case 'skins':
-            if (window.currentSkinWeaponType) {
-                knifeSkins(window.currentSkinWeaponType);
-            }
-            break;
-    }
-}
+    imgElement.dataset.fallbackIndex = String(index);
+    imgElement.src = images[index];
+};
 
-window.refreshCurrentCategory = refreshCurrentCategory
+window.getImageCandidates = (item) => {
+    const candidates = [];
 
-// Team filter management
-function setTeamFilter(team) {
-    window.selectedTeam = team;
-    if (team !== 'both') {
-        window.lastNonBothTeam = team;
+    if (item?.image) {
+        candidates.push(item.image);
+
+        if (item.image.includes('static.wikia.nocookie.net') && !item.image.includes('/revision/latest')) {
+            candidates.push(`${item.image}/revision/latest`);
+        }
     }
 
-    // Update button states
-    const bothButton = document.getElementById('teamBoth');
-    if (bothButton) {
-        bothButton.className = team === 'both' ? 'btn btn-primary active' : 'btn btn-outline-primary';
-    }
-    document.getElementById('teamCT').className = team === 'ct' ? 'btn btn-primary active' : 'btn btn-outline-primary';
-    document.getElementById('teamT').className = team === 't' ? 'btn btn-primary active' : 'btn btn-outline-primary';
+    // Gloves default icons can become stale; use live skin images as fallbacks.
+    if (item?.weapon_type === 'sfui_invpanel_filter_gloves' && Array.isArray(window.skinsObject)) {
+        const fallbackSkins = window.skinsObject.filter(skin => {
+            return skin?.category?.id === 'sfui_invpanel_filter_gloves' && skin?.weapon?.id === item.weapon_name && skin?.image;
+        });
 
-    refreshCurrentCategory();
-}
-
-// Helper to get team badge HTML
-function getTeamBadge(label) {
-    if (!label) {
-        return '';
+        fallbackSkins.slice(0, 8).forEach(skin => candidates.push(skin.image));
     }
 
-    let badgeClass = 'bg-secondary text-light';
-    if (label === 'T') {
-        badgeClass = 'bg-warning text-dark';
-    } else if (label === 'CT') {
-        badgeClass = 'bg-info text-dark';
-    }
+    return [...new Set(candidates.filter(Boolean))];
+};
 
-    return `<span class="badge ${badgeClass} position-absolute top-0 start-0 m-2" style="z-index: 10;">${label}</span>`;
-}
+window.defaultsTemplate = (weapon, langObject, lang) => {
+    let card = document.createElement('div')
+    card.classList.add('col-6', 'col-sm-4', 'col-md-3', 'p-2')
 
-// Helper to build a single badge for all matches
-function getTeamBadgeForMatches(matches) {
-    if (!matches || matches.length === 0) {
-        return '';
-    }
-
-    const teams = new Set(matches.map(match => match.weapon_team));
-    if (teams.has(2) && teams.has(3)) {
-        return getTeamBadge('both');
-    }
-
-    if (teams.has(2)) {
-        return getTeamBadge('T');
-    }
-
-    if (teams.has(3)) {
-        return getTeamBadge('CT');
-    }
-
-    return '';
-}
-
-function getFloatLabel(value) {
-    const floatValue = Number(value);
-
-    if (typeof langObject === 'undefined' || !Number.isFinite(floatValue) || !langObject.modal || !Array.isArray(langObject.modal.patternButtons)) {
-        return '';
-    }
-
-    let index = 0;
-    if (floatValue >= 0.45) {
-        index = 4;
-    } else if (floatValue >= 0.38) {
-        index = 3;
-    } else if (floatValue >= 0.15) {
-        index = 2;
-    } else if (floatValue >= 0.07) {
-        index = 1;
-    }
-
-    return langObject.modal.patternButtons[index]?.longName || '';
-}
-
-function syncFloatInputs(value) {
-    const floatSlider = document.getElementById('floatSlider');
-    const floatInput = document.getElementById('float');
-    const floatText = document.getElementById('floatText');
-    const nextValue = value ?? '0.000001';
-
-    if (floatSlider) {
-        floatSlider.value = nextValue;
-    }
-
-    if (floatInput) {
-        floatInput.value = nextValue;
-    }
-
-    if (floatText) {
-        floatText.textContent = getFloatLabel(nextValue);
-    }
-}
-
-window.setFloat = (value) => {
-    syncFloatInputs(value);
-}
-
-function resetEditModal() {
-    const form = document.getElementById('patternFloat');
-    const modalButton = document.getElementById('modalButton');
-
-    currentWeaponId = '';
-    currentPaintId = '';
-
-    syncFloatInputs('0.000001');
-    const patternInput = document.getElementById('pattern');
-    if (patternInput) {
-        patternInput.value = '0';
-    }
-
-    if (modalButton && typeof langObject !== 'undefined') {
-        modalButton.innerHTML = langObject.change;
-    }
-
-    return form;
-}
-
-// Helper to check if item is selected for current team
-function isSelectedForTeam(items, matchCriteria) {
-    if (!items || !Array.isArray(items)) return null;
-
-    const teamMap = { 'both': [2, 3], 'ct': [3], 't': [2] };
-    const teamsToCheck = teamMap[window.selectedTeam] || [2, 3];
-
-    const matches = items.filter(item => {
-        const criteriaMatch = Object.keys(matchCriteria).every(key => item[key] == matchCriteria[key]);
-        return criteriaMatch && teamsToCheck.includes(item.weapon_team);
-    });
-
-    return matches.length > 0 ? matches : null;
-}
-
-// Helper to get all selected items (for showing badges in "both" mode)
-function getAllSelectedForItem(items, matchCriteria) {
-    if (!items || !Array.isArray(items)) return [];
-
-    return items.filter(item => {
-        return Object.keys(matchCriteria).every(key => item[key] == matchCriteria[key]);
-    });
-}
-
-
-function getKeyByValue(object, value) {
-    return Object.keys(object).find(key => object[key] === value);
-}
-
-const weaponIds = {
-    "weapon_deagle": 1,
-    "weapon_elite": 2,
-    "weapon_fiveseven": 3,
-    "weapon_glock": 4,
-    "weapon_ak47": 7,
-    "weapon_aug": 8,
-    "weapon_awp": 9,
-    "weapon_famas": 10,
-    "weapon_g3sg1": 11,
-    "weapon_galilar": 13,
-    "weapon_m249": 14,
-    "weapon_m4a1": 16,
-    "weapon_mac10": 17,
-    "weapon_p90": 19,
-    "weapon_mp5sd": 23,
-    "weapon_ump45": 24,
-    "weapon_xm1014": 25,
-    "weapon_bizon": 26,
-    "weapon_mag7": 27,
-    "weapon_negev": 28,
-    "weapon_sawedoff": 29,
-    "weapon_tec9": 30,
-    "weapon_taser": 31,
-    "weapon_hkp2000": 32,
-    "weapon_mp7": 33,
-    "weapon_mp9": 34,
-    "weapon_nova": 35,
-    "weapon_p250": 36,
-    "weapon_shield": 37,
-    "weapon_scar20": 38,
-    "weapon_sg556": 39,
-    "weapon_ssg08": 40,
-    "weapon_knifegg": 41,
-    "weapon_knife": 42,
-    "weapon_flashbang": 43,
-    "weapon_hegrenade": 44,
-    "weapon_smokegrenade": 45,
-    "weapon_molotov": 46,
-    "weapon_decoy": 47,
-    "weapon_incgrenade": 48,
-    "weapon_c4": 49,
-    "weapon_healthshot": 57,
-    "weapon_knife_t": 59,
-    "weapon_m4a1_silencer": 60,
-    "weapon_usp_silencer": 61,
-    "weapon_cz75a": 63,
-    "weapon_revolver": 64,
-    "weapon_tagrenade": 68,
-    "weapon_fists": 69,
-    "weapon_breachcharge": 70,
-    "weapon_tablet": 72,
-    "weapon_melee": 74,
-    "weapon_axe": 75,
-    "weapon_hammer": 76,
-    "weapon_spanner": 78,
-    "weapon_knife_ghost": 80,
-    "weapon_firebomb": 81,
-    "weapon_diversion": 82,
-    "weapon_frag_grenade": 83,
-    "weapon_snowball": 84,
-    "weapon_bumpmine": 85,
-    "weapon_bayonet": 500,
-    "weapon_knife_css": 503,
-    "weapon_knife_flip": 505,
-    "weapon_knife_gut": 506,
-    "weapon_knife_karambit": 507,
-    "weapon_knife_m9_bayonet": 508,
-    "weapon_knife_tactical": 509,
-    "weapon_knife_falchion": 512,
-    "weapon_knife_survival_bowie": 514,
-    "weapon_knife_butterfly": 515,
-    "weapon_knife_push": 516,
-    "weapon_knife_cord": 517,
-    "weapon_knife_canis": 518,
-    "weapon_knife_ursus": 519,
-    "weapon_knife_gypsy_jackknife": 520,
-    "weapon_knife_outdoor": 521,
-    "weapon_knife_stiletto": 522,
-    "weapon_knife_widowmaker": 523,
-    "weapon_knife_skeleton": 525,
-    "weapon_knife_kukri": 526,
-    "studded_brokenfang_gloves": 4725,
-    "studded_bloodhound_gloves": 5027,
-    "t_gloves": 5028,
-    "ct_gloves": 5029,
-    "sporty_gloves": 5030,
-    "slick_gloves": 5031,
-    "leather_handwraps": 5032,
-    "motorcycle_gloves": 5033,
-    "specialist_gloves": 5034,
-    "studded_hydra_gloves": 5035
-}
-
-const editModal = (img, weaponName, paintName, weaponId, paintId, floatValue = '0.000001', patternValue = '0') => {
-    document.getElementById('modalImg').src = img
-    document.getElementById('modalWeapon').innerText = weaponName
-    document.getElementById('modalPaint').innerText = paintName
-    currentWeaponId = weaponIds[weaponId] || weaponId
-    currentPaintId = paintId
-    syncFloatInputs(floatValue)
-
-    const patternInput = document.getElementById('pattern')
-    if (patternInput) {
-        patternInput.value = patternValue
-    }
-
-    const modalButton = document.getElementById('modalButton')
-    if (modalButton && typeof langObject !== 'undefined') {
-        modalButton.innerHTML = langObject.change
-    }
-    console.log(img, weaponName, paintName, currentWeaponId, currentPaintId)
-}
-
-const changeParams = () => {
-    let steamid = user.id
-    let weaponid = currentWeaponId
-    let paintid = currentPaintId
-    let float = document.getElementById("float").value
-    let pattern = document.getElementById("pattern").value
-
-    document.getElementById('modalButton').innerHTML = 
-        `
-            <div class="spinner-border spinner-border-sm" role="status">
+    card.innerHTML = `
+    <div class="rounded-3 d-flex flex-column card-common weapon-card weapon_knife" id="${weapon.weapon_name}">
+        <div style="z-index: 3;" class="loading-card d-flex justify-content-center align-items-center w-100 h-100" id="loading-${weapon.weapon_name}">
+            <div class="spinner-border spinner-border-xl" role="status">
                 <span class="visually-hidden">Loading...</span>
             </div>
-        `
+        </div>
 
-    socket.emit('change-params', {
-        steamid: steamid,
-        weaponid: weaponid,
-        paintid: paintid,
-        float: float,
-        pattern: pattern,
-        team: window.selectedTeam || 'both'
-    })
+        <a class="text-decoration-none d-flex flex-column" style="z-index: 0;">
+                <img src="${weapon.image}" class="weapon-img mx-auto my-3" loading="lazy" alt="${weapon.paint_name}">
+                
+                <p class="m-0 text-light weapon-skin-title mx-auto text-center">${weapon.paint_name}</p>
+        </a>
+        <button onclick="knifeSkins(\'${weapon.weapon_name}\')" class="btn btn-primary text-warning mx-auto my-2" style="z-index: 1;"><small>${langObject.changeSkin}</small></button>
+    </div>
+    `
+
+    document.getElementById('skinsContainer').appendChild(card)  
 }
 
-socket.on('params-changed', () => {
-    document.getElementById('modalButton').innerHTML = langObject.change
-    const modalElement = document.getElementById('patternFloat')
-    if (modalElement && window.bootstrap && window.bootstrap.Modal) {
-        const modal = window.bootstrap.Modal.getOrCreateInstance(modalElement)
-        modal.hide()
-        setTimeout(() => {
-            document.querySelectorAll('.modal-backdrop').forEach((backdrop) => backdrop.remove())
-            document.body.classList.remove('modal-open')
-            document.body.style.removeProperty('padding-right')
-        }, 200)
-    }
-    showSuccessNotification()
-    resetEditModal()
-})
+window.changeSkinTemplate = (weapon, langObject, selectedKnife, teamBadges = '') => {
+    let card = document.createElement('div')
+    card.classList.add('col-6', 'col-sm-4', 'col-md-3', 'p-2')
 
-const floatSlider = document.getElementById('floatSlider')
-const floatInput = document.getElementById('float')
-if (floatSlider && floatInput) {
-    floatSlider.addEventListener('input', (event) => syncFloatInputs(event.target.value))
-    floatInput.addEventListener('input', (event) => syncFloatInputs(event.target.value))
-    syncFloatInputs(floatInput.value || floatSlider.value)
+    card.innerHTML = `
+    <div class="rounded-3 d-flex flex-column card-common weapon-card weapon_knife position-relative" id="${weapon.weapon_name}">
+        ${teamBadges}
+        <button id="reset-${weapon.weapon_name}" onclick="resetSkin(${weapon.weapon_defindex}, '${selectedKnife.steamid}')" style="z-index: 3;" class="revert d-flex justify-content-center align-items-center text-danger rounded-circle">
+            <i class="fa-solid fa-rotate-right"></i>
+        </button>
+
+        <div style="z-index: 3;" class="loading-card d-flex justify-content-center align-items-center w-100 h-100" id="loading-${weapon.weapon_name}">
+            <div class="spinner-border spinner-border-xl" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+
+        <a class="text-decoration-none d-flex flex-column" style="z-index: 0;">
+                <img src="${weapon.image}" class="weapon-img mx-auto my-3" loading="lazy" alt="${weapon.image}" id="img-${weapon.weapon_name}">
+                
+                <p class="m-0 text-light weapon-skin-title mx-auto text-center">${weapon.paint_name}</p>
+        </a>
+        <button onclick="knifeSkins(\'${weapon.weapon_name}\')" class="btn btn-primary text-warning mx-auto my-2" style="z-index: 1;"><small>${langObject.changeSkin}</small></button>
+    </div>
+    `
+
+    document.getElementById('skinsContainer').appendChild(card)  
 }
 
-const showSuccessNotification = () => {
-    const notification = document.getElementById('successNotification')
-    if (notification) {
-        notification.style.display = 'block'
-        notification.style.opacity = '1'
-        setTimeout(() => {
-            notification.style.opacity = '0'
-            setTimeout(() => {
-                notification.style.display = 'none'
-            }, 300)
-        }, 2000)
+window.changeKnifeSkinTemplate = (knife, langObject, selectedKnife, matchingItems) => {
+    let card = document.createElement('div')
+    card.classList.add('col-6', 'col-sm-4', 'col-md-3', 'p-2')
+
+    // check if knife is selected
+    let active = matchingItems && matchingItems.length > 0 ? 'active-card' : '';
+
+    // Generate team badges
+        let teamBadges = '';
+        if (matchingItems && matchingItems.length > 0) {
+            teamBadges = getTeamBadgeForMatches(matchingItems);
+        }
+
+    card.innerHTML = `
+    <div class="rounded-3 d-flex flex-column card-common weapon-card ${active} weapon_knife position-relative" id="${knife.weapon_name}">
+        ${teamBadges}
+        <button id="reset-${knife.weapon_name}" onclick="resetSkin(${knife.weapon_defindex}, '${selectedKnife.steamid}')" style="z-index: 3;" class="revert d-flex justify-content-center align-items-center text-danger rounded-circle">
+            <i class="fa-solid fa-rotate-right"></i>
+        </button>
+
+        <div style="z-index: 3;" class="loading-card d-flex justify-content-center align-items-center w-100 h-100" id="loading-${knife.weapon_name}">
+            <div class="spinner-border spinner-border-xl" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+
+        <a class="text-decoration-none d-flex flex-column" style="z-index: 0;">
+                <img src="${knife.image}" class="weapon-img mx-auto my-3" loading="lazy" alt="${knife.image}" id="img-${knife.weapon_name}">
+                
+                <p class="m-0 text-light weapon-skin-title mx-auto text-center">${knife.paint_name}</p>
+        </a>
+        <button onclick="knifeSkins(\'${knife.weapon_name}\')" class="btn btn-primary text-warning mx-auto my-2" style="z-index: 1;"><small>${langObject.changeSkin}</small></button>
+        <div class="d-flex gap-2 px-3 mb-2">
+            <button class="btn btn-sm btn-outline-light w-100" onclick="changeKnife('${knife.weapon_name}', 't')">Equip T</button>
+            <button class="btn btn-sm btn-outline-light w-100" onclick="changeKnife('${knife.weapon_name}', 'ct')">Equip CT</button>
+            <button class="btn btn-sm btn-outline-warning w-100" onclick="changeKnife('${knife.weapon_name}', 'both')">Both</button>
+        </div>
+    </div>
+    `
+
+    document.getElementById('skinsContainer').appendChild(card)  
+}
+
+window.changeSkinCard = (weapon, selectedSkin, secondarySkin = null) => {
+    const findSkin = (skinRow) => {
+        if (!skinRow) return null;
+        return skinsObject.find(skinWeapon => {
+            return weaponIds[skinWeapon.weapon.id] == weapon.weapon_defindex && skinWeapon.paint_index == skinRow.weapon_paint_id;
+        }) || null;
+    };
+
+    const primarySkin = findSkin(selectedSkin);
+    const secondary = secondarySkin ? findSkin(secondarySkin) : null;
+
+    if (!primarySkin) {
+        return;
     }
+
+    if (primarySkin.category && primarySkin.category.id == 'sfui_invpanel_filter_melee') {
+        primarySkin.rarity.color = "#caab05"
+    }
+    if (secondary && secondary.category && secondary.category.id == 'sfui_invpanel_filter_melee') {
+        secondary.rarity.color = "#caab05"
+    }
+
+    const imgId = `img-${weapon.weapon_name}`;
+    let existingImg = document.getElementById(imgId);
+    const wrapperId = `img-wrap-${weapon.weapon_name}`;
+    const existingWrapper = document.getElementById(wrapperId);
+
+    if (secondary && weapon.weapon_type !== 'sfui_invpanel_filter_melee' && weapon.weapon_type !== 'sfui_invpanel_filter_gloves') {
+        let wrapper = existingWrapper;
+
+        if (!wrapper) {
+            wrapper = document.createElement('div');
+            wrapper.id = wrapperId;
+            wrapper.className = existingImg ? existingImg.className : 'weapon-img mx-auto my-3';
+            wrapper.style.position = 'relative';
+            wrapper.style.display = 'block';
+            wrapper.style.aspectRatio = '181 / 136';
+            wrapper.style.overflow = 'hidden';
+        }
+
+        // Left side: primary skin, right side: secondary skin
+        wrapper.innerHTML = `
+            <img data-skin-side="primary" src="${primarySkin.image}" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; clip-path: inset(0 50% 0 0);" loading="lazy" alt="${primarySkin.pattern ? primarySkin.pattern.name : ''}">
+            <img data-skin-side="secondary" src="${secondary.image}" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; clip-path: inset(0 0 0 50%);" loading="lazy" alt="${secondary.pattern ? secondary.pattern.name : ''}">
+        `;
+
+        const primaryImg = wrapper.querySelector('[data-skin-side="primary"]');
+        if (primaryImg) {
+            primaryImg.style.filter = `drop-shadow(0px 0px 20px ${primarySkin.rarity.color})`;
+        }
+
+        const secondaryImg = wrapper.querySelector('[data-skin-side="secondary"]');
+        if (secondaryImg) {
+            secondaryImg.style.filter = `drop-shadow(0px 0px 20px ${secondary.rarity.color})`;
+        }
+
+        if (existingImg) {
+            existingImg.replaceWith(wrapper);
+        }
+        return;
+    }
+
+    if (!existingImg && existingWrapper) {
+        const newImg = document.createElement('img');
+        newImg.id = imgId;
+        newImg.className = existingWrapper.className || 'weapon-img mx-auto my-3';
+        newImg.loading = 'lazy';
+        newImg.alt = primarySkin.pattern ? primarySkin.pattern.name : '';
+        existingWrapper.replaceWith(newImg);
+        existingImg = newImg;
+    }
+
+    if (!existingImg) {
+        return;
+    }
+
+    existingImg.src = primarySkin.image;
+    existingImg.style = `filter: drop-shadow(0px 0px 20px ${primarySkin.rarity.color});`
+}
+
+window.knivesTemplate = (knife, langObject, selectedKnife) => {
+    let card = document.createElement('div')
+    card.classList.add('col-6', 'col-sm-4', 'col-md-3', 'p-2')
+
+    // check if knife is selected for any team
+    const allMatches = getAllSelectedForItem(selectedKnives, {knife: knife.weapon_name});
+    let active = allMatches.length > 0 ? 'active-card' : '';
+
+    // Generate team badges
+        let teamBadges = '';
+        if (allMatches.length > 0) {
+            teamBadges = getTeamBadgeForMatches(allMatches);
+        }
+
+    card.innerHTML = `
+    <div class="rounded-3 d-flex flex-column card-common weapon-card ${active} weapon_knife position-relative" id="${knife.weapon_name}">
+        ${teamBadges}
+        <div style="z-index: 3;" class="loading-card d-flex justify-content-center align-items-center w-100 h-100" id="loading-${knife.weapon_name}">
+            <div class="spinner-border spinner-border-xl" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+
+        <a class="text-decoration-none d-flex flex-column" style="z-index: 0;">
+                <img src="${knife.image}" class="weapon-img mx-auto my-3" loading="lazy" alt="${knife.paint_name}">
+                
+                <p class="m-0 text-light weapon-skin-title mx-auto text-center">${knife.paint_name}</p>
+        </a>
+        <button onclick="knifeSkins(\'${knife.weapon_name}\')" class="btn btn-primary text-warning mx-auto my-2" style="z-index: 1;"><small>${langObject.changeSkin}</small></button>
+        <div class="d-flex gap-2 px-3 mb-2">
+            <button class="btn btn-sm btn-outline-light w-100" onclick="changeKnife('${knife.weapon_name}', 't')">Equip T</button>
+            <button class="btn btn-sm btn-outline-light w-100" onclick="changeKnife('${knife.weapon_name}', 'ct')">Equip CT</button>
+            <button class="btn btn-sm btn-outline-warning w-100" onclick="changeKnife('${knife.weapon_name}', 'both')">Both</button>
+        </div>
+    </div>
+    `
+
+    document.getElementById('skinsContainer').appendChild(card)      
+}
+
+window.glovesTemplate = (gloves, langObject, selectedGloves) => {
+    let card = document.createElement('div')
+    card.classList.add('col-6', 'col-sm-4', 'col-md-3', 'p-2')
+
+    // check if gloves are selected for any team
+    const allMatches = getAllSelectedForItem(selectedGloves, {weapon_defindex: gloves.weapon_defindex});
+    let active = allMatches.length > 0 ? 'active-card' : '';
+
+    // Generate team badges
+        let teamBadges = '';
+        if (allMatches.length > 0) {
+            teamBadges = getTeamBadgeForMatches(allMatches);
+        }
+
+    const imageCandidates = getImageCandidates(gloves);
+    const gloveImage = imageCandidates[0] || gloves.image || '';
+    const encodedCandidates = imageCandidates.map(value => encodeURIComponent(value)).join(',');
+
+    card.innerHTML = `
+    <div class="rounded-3 d-flex flex-column card-common weapon-card ${active} weapon_knife position-relative" id="${gloves.weapon_name}">
+        ${teamBadges}
+        <div style="z-index: 3;" class="loading-card d-flex justify-content-center align-items-center w-100 h-100" id="loading-${gloves.weapon_name}">
+            <div class="spinner-border spinner-border-xl" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+
+        <a class="text-decoration-none d-flex flex-column" style="z-index: 0; height: 196px;">
+                <img src="${gloveImage}" data-fallback-images="${encodedCandidates}" data-fallback-index="0" onerror="handleImageFallback(this)" class="weapon-img mx-auto my-3" loading="lazy" alt="${gloves.paint_name}" style="object-fit: contain; aspect-ratio: 512 / 384;">
+                
+                <p class="m-0 text-light weapon-skin-title mx-auto text-center">${gloves.paint_name}</p>
+        </a>
+        <button onclick="knifeSkins(\'${gloves.weapon_name}\')" class="btn btn-primary text-warning mx-auto my-2" style="z-index: 1;"><small>${langObject.changeSkin}</small></button>
+        <div class="d-flex gap-2 px-3 mb-2">
+            <button class="btn btn-sm btn-outline-light w-100" onclick="changeGlove('${gloves.weapon_name}', 't')">Equip T</button>
+            <button class="btn btn-sm btn-outline-light w-100" onclick="changeGlove('${gloves.weapon_name}', 'ct')">Equip CT</button>
+            <button class="btn btn-sm btn-outline-warning w-100" onclick="changeGlove('${gloves.weapon_name}', 'both')">Both</button>
+        </div>
+    </div>
+    `
+
+    document.getElementById('skinsContainer').appendChild(card)       
+}
+
+window.changeGlovesSkinTemplate = (gloves, langObject, selectedGloves, matchingItems) => {
+    let card = document.createElement('div')
+    card.classList.add('col-6', 'col-sm-4', 'col-md-3', 'p-2')
+
+    const selectedGloveSteamid = selectedGloves?.steamid || selectedGloves?.[0]?.steamid || user.id
+
+    // check if gloves are selected
+    let active = matchingItems && matchingItems.length > 0 ? 'active-card' : '';
+
+    // Generate team badges
+    let teamBadges = '';
+    if (matchingItems && matchingItems.length > 0) {
+        teamBadges = getTeamBadgeForMatches(matchingItems);
+    }
+
+    const imageCandidates = getImageCandidates(gloves);
+    const gloveImage = imageCandidates[0] || gloves.image || '';
+    const encodedCandidates = imageCandidates.map(value => encodeURIComponent(value)).join(',');
+
+    card.innerHTML = `
+    <div class="rounded-3 d-flex flex-column card-common weapon-card ${active} weapon_knife position-relative" id="${gloves.weapon_name}">
+        ${teamBadges}
+        <button id="reset-${gloves.weapon_name}" onclick="resetSkin(${gloves.weapon_defindex}, '${selectedGloveSteamid}')" style="z-index: 3;" class="revert d-flex justify-content-center align-items-center text-danger rounded-circle">
+            <i class="fa-solid fa-rotate-right"></i>
+        </button>
+
+        <div style="z-index: 3;" class="loading-card d-flex justify-content-center align-items-center w-100 h-100" id="loading-${gloves.weapon_name}">
+            <div class="spinner-border spinner-border-xl" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+
+        <a class="text-decoration-none d-flex flex-column" style="z-index: 0; height: 196px;">
+                <img src="${gloveImage}" data-fallback-images="${encodedCandidates}" data-fallback-index="0" onerror="handleImageFallback(this)" class="weapon-img mx-auto my-3" loading="lazy" alt="${gloves.image}" id="img-${gloves.weapon_name}" style="object-fit: contain;">
+                
+                <p class="m-0 text-light weapon-skin-title mx-auto text-center">${gloves.paint_name}</p>
+        </a>
+        <button onclick="knifeSkins(\'${gloves.weapon_name}\')" class="btn btn-primary text-warning mx-auto my-2" style="z-index: 1;"><small>${langObject.changeSkin}</small></button>
+        <div class="d-flex gap-2 px-3 mb-2">
+            <button class="btn btn-sm btn-outline-light w-100" onclick="changeGlove('${gloves.weapon_name}', 't')">Equip T</button>
+            <button class="btn btn-sm btn-outline-light w-100" onclick="changeGlove('${gloves.weapon_name}', 'ct')">Equip CT</button>
+            <button class="btn btn-sm btn-outline-warning w-100" onclick="changeGlove('${gloves.weapon_name}', 'both')">Both</button>
+        </div>
+    </div>
+    `
+
+    document.getElementById('skinsContainer').appendChild(card)  
+}
+
+window.showAgents = (type) => {
+    let team = {
+        'ct': 3,
+        't': 2
+    }
+
+    // clear main container
+    document.getElementById('skinsContainer').innerHTML = ''
+    document.getElementById('skinsContainer').setAttribute('data-category', type === 'ct' ? 'ct-agents' : 't-agents');
+
+    agentsObject.forEach(element => {
+        console.log(element.team, team.type)
+        if (element.team == team[type]) {
+            let rarities = {
+                "#b0c3d9": "common",
+                "#5e98d9": "uncommon",
+                "#4b69ff": "rare",
+                "#8847ff": "mythical",
+                "#d32ce6": "legendary",
+                "#eb4b4b": "ancient",
+                "#e4ae39": "contraband"
+            }
+
+            let bgColor = 'card-uncommon'
+            let phase  = ''
+            let active = ''
+            let steamid = user.id
+
+            // Make outline if this skin is selected - check against current team filter
+            const matchingAgents = isSelectedForTeam(selectedAgents, {});
+            if (matchingAgents && matchingAgents.length > 0) {
+                const agentColumn = type === 'ct' ? 'agent_ct' : 'agent_t';
+                matchingAgents.forEach(match => {
+                    if (match[agentColumn] == element.model) {
+                        active = 'active-card';
+                    }
+                });
+            }
+
+            // Generate team badges
+            let teamBadges = '';
+            if (matchingAgents && matchingAgents.length > 0) {
+                const agentColumn = type === 'ct' ? 'agent_ct' : 'agent_t';
+                const matchesForAgent = matchingAgents.filter(match => match[agentColumn] == element.model);
+                teamBadges = getTeamBadgeForMatches(matchesForAgent);
+            }
+            
+            let card = document.createElement('div')
+            card.classList.add('col-6', 'col-sm-4', 'col-md-3', 'p-2')
+
+            card.innerHTML = `
+                <div id="agent-${element.model}" class="weapon-card rounded-3 d-flex flex-column ${active} ${bgColor} contrast-reset pb-2 position-relative" data-type="skinCard" data-btn-type="">
+                    ${teamBadges}
+                    <div style="z-index: 3;" class="loading-card d-flex justify-content-center align-items-center w-100 h-100" id="loading-${element.model}">
+                        <div class="spinner-border spinner-border-xl" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+
+                    <img src="${element.image}" class="weapon-img mx-auto my-3" loading="lazy" width="181px" height="136px" alt=" ">
+                    
+                    <div class="d-flex align-items-center g-3">
+                    
+                    </div>
+                    
+                    <h5 class="weapon-skin-title text-roboto ms-3">
+                        ${element.agent_name}
+                    </h5>
+                    <div class="d-flex gap-2 px-3 mt-auto">
+                        <button class="btn btn-sm btn-primary w-100" onclick="changeAgent('${steamid}', '${element.model}', '${type}')">Equip</button>
+                    </div>
+                </div>
+            `
+
+            document.getElementById('skinsContainer').appendChild(card)
+        }
+    });
+}
+
+window.showMusicKits = () => {
+    // clear main container
+    document.getElementById('skinsContainer').innerHTML = ''
+    document.getElementById('skinsContainer').setAttribute('data-category', 'music');
+
+    musicObject.forEach(element => {
+        console.log(element.id.slice(-2))
+        if (element.id.slice(-2) != 'st') {
+            let bgColor = 'card-uncommon'
+            let active = ''
+            let steamid = user.id
+            let music_id = element.id.slice(element.id.lastIndexOf('-')+1)
+
+            // Check if this music is selected for current team
+            const matchingMusic = isSelectedForTeam(selectedMusic, {music_id: music_id});
+            if (matchingMusic && matchingMusic.length > 0) {
+                active = 'active-card'
+            }
+            
+            // Generate team badges
+            let teamBadges = '';
+            if (matchingMusic && matchingMusic.length > 0) {
+                teamBadges = getTeamBadgeForMatches(matchingMusic);
+            }
+
+            let card = document.createElement('div')
+            card.classList.add('col-6', 'col-sm-4', 'col-md-3', 'p-2')
+
+            card.innerHTML = `
+                <div id="music-${music_id}" class="weapon-card card-rare rounded-3 d-flex flex-column ${active} ${bgColor} contrast-reset pb-2 position-relative" data-type="skinCard" data-btn-type="">
+                    ${teamBadges}
+                    <div style="z-index: 3;" class="loading-card d-flex justify-content-center align-items-center w-100 h-100" id="loading-${music_id}">
+                        <div class="spinner-border spinner-border-xl" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+
+                    <img src="${element.image}" class="weapon-img mx-auto my-3" loading="lazy" width="181px" height="136px" alt=" ">
+                    
+                    <div class="d-flex align-items-center g-3">
+                    
+                    </div>
+                    
+                    <h5 class="weapon-skin-title text-roboto ms-3">
+                        ${element.name.slice(12)}
+                    </h5>
+                    <div class="d-flex gap-2 px-3 mt-auto">
+                        <button class="btn btn-sm btn-primary w-100" onclick="changeMusic('${steamid}', '${music_id}')">Equip</button>
+                    </div>
+                </div>
+            `
+
+            document.getElementById('skinsContainer').appendChild(card)
+        }
+    });
+
 }
