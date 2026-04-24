@@ -1,3 +1,48 @@
+// Rotates image candidates when legacy hosts fail.
+window.handleImageFallback = (imgElement) => {
+    const raw = imgElement?.dataset?.fallbackImages;
+    if (!raw) return;
+
+    const images = raw
+        .split(',')
+        .map(value => decodeURIComponent(value))
+        .filter(Boolean);
+
+    let index = Number(imgElement.dataset.fallbackIndex || '0');
+    index += 1;
+
+    if (index >= images.length) {
+        imgElement.onerror = null;
+        return;
+    }
+
+    imgElement.dataset.fallbackIndex = String(index);
+    imgElement.src = images[index];
+};
+
+window.getImageCandidates = (item) => {
+    const candidates = [];
+
+    if (item?.image) {
+        candidates.push(item.image);
+
+        if (item.image.includes('static.wikia.nocookie.net') && !item.image.includes('/revision/latest')) {
+            candidates.push(`${item.image}/revision/latest`);
+        }
+    }
+
+    // Gloves default icons can become stale; use live skin images as fallbacks.
+    if (item?.weapon_type === 'sfui_invpanel_filter_gloves' && Array.isArray(window.skinsObject)) {
+        const fallbackSkins = window.skinsObject.filter(skin => {
+            return skin?.category?.id === 'sfui_invpanel_filter_gloves' && skin?.weapon?.id === item.weapon_name && skin?.image;
+        });
+
+        fallbackSkins.slice(0, 8).forEach(skin => candidates.push(skin.image));
+    }
+
+    return [...new Set(candidates.filter(Boolean))];
+};
+
 window.defaultsTemplate = (weapon, langObject, lang) => {
     let card = document.createElement('div')
     card.classList.add('col-6', 'col-sm-4', 'col-md-3', 'p-2')
@@ -228,6 +273,10 @@ window.glovesTemplate = (gloves, langObject, selectedGloves) => {
             teamBadges = getTeamBadgeForMatches(allMatches);
         }
 
+    const imageCandidates = getImageCandidates(gloves);
+    const gloveImage = imageCandidates[0] || gloves.image || '';
+    const encodedCandidates = imageCandidates.map(value => encodeURIComponent(value)).join(',');
+
     card.innerHTML = `
     <div class="rounded-3 d-flex flex-column card-common weapon-card ${active} weapon_knife position-relative" id="${gloves.weapon_name}">
         ${teamBadges}
@@ -238,7 +287,7 @@ window.glovesTemplate = (gloves, langObject, selectedGloves) => {
         </div>
 
         <a class="text-decoration-none d-flex flex-column" style="z-index: 0; height: 196px;">
-                <img src="${gloves.image}" class="weapon-img mx-auto my-3" loading="lazy" alt="${gloves.paint_name}" style="object-fit: contain; aspect-ratio: 512 / 384;">
+                <img src="${gloveImage}" data-fallback-images="${encodedCandidates}" data-fallback-index="0" onerror="handleImageFallback(this)" class="weapon-img mx-auto my-3" loading="lazy" alt="${gloves.paint_name}" style="object-fit: contain; aspect-ratio: 512 / 384;">
                 
                 <p class="m-0 text-light weapon-skin-title mx-auto text-center">${gloves.paint_name}</p>
         </a>
@@ -269,6 +318,10 @@ window.changeGlovesSkinTemplate = (gloves, langObject, selectedGloves, matchingI
         teamBadges = getTeamBadgeForMatches(matchingItems);
     }
 
+    const imageCandidates = getImageCandidates(gloves);
+    const gloveImage = imageCandidates[0] || gloves.image || '';
+    const encodedCandidates = imageCandidates.map(value => encodeURIComponent(value)).join(',');
+
     card.innerHTML = `
     <div class="rounded-3 d-flex flex-column card-common weapon-card ${active} weapon_knife position-relative" id="${gloves.weapon_name}">
         ${teamBadges}
@@ -283,7 +336,7 @@ window.changeGlovesSkinTemplate = (gloves, langObject, selectedGloves, matchingI
         </div>
 
         <a class="text-decoration-none d-flex flex-column" style="z-index: 0; height: 196px;">
-                <img src="${gloves.image}" class="weapon-img mx-auto my-3" loading="lazy" alt="${gloves.image}" id="img-${gloves.weapon_name}" style="object-fit: contain;">
+                <img src="${gloveImage}" data-fallback-images="${encodedCandidates}" data-fallback-index="0" onerror="handleImageFallback(this)" class="weapon-img mx-auto my-3" loading="lazy" alt="${gloves.image}" id="img-${gloves.weapon_name}" style="object-fit: contain;">
                 
                 <p class="m-0 text-light weapon-skin-title mx-auto text-center">${gloves.paint_name}</p>
         </a>
