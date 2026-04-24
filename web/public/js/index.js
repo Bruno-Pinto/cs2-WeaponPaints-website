@@ -5,6 +5,7 @@ let currentWeaponId = ''
 let currentPaintId = ''
 window.currentSkinWeaponType = ''
 window.selectedTeam = 'both'
+window.lastNonBothTeam = 'ct'
 window.previousCategory = null
 
 window.goBack = () => {
@@ -202,6 +203,70 @@ function getKeyByValue(object, value) {
     return Object.keys(object).find(key => object[key] === value);
 }
 
+const resolveSelectedTeams = (team = window.selectedTeam) => {
+    if (team === 'ct') {
+        return [3];
+    }
+
+    if (team === 't') {
+        return [2];
+    }
+
+    return [2, 3];
+}
+
+const getCurrentSkinParams = (weaponId, paintId) => {
+    const resolvedWeaponId = weaponIds[weaponId] || weaponId
+    const defaultValues = {
+        floatValue: '0.000001',
+        patternValue: '0'
+    }
+
+    if (typeof selectedSkins === 'undefined' || !Array.isArray(selectedSkins)) {
+        return defaultValues
+    }
+
+    const matchingSkins = selectedSkins.filter((skin) => {
+        return skin.weapon_defindex == resolvedWeaponId && skin.weapon_paint_id == paintId
+    })
+
+    if (!matchingSkins.length) {
+        return defaultValues
+    }
+
+    const selectedTeams = resolveSelectedTeams(window.selectedTeam)
+    let currentSkin = matchingSkins.find((skin) => selectedTeams.includes(skin.weapon_team))
+
+    if (!currentSkin && window.selectedTeam === 'both') {
+        const preferredTeam = window.lastNonBothTeam === 't' ? 2 : 3
+        currentSkin = matchingSkins.find((skin) => skin.weapon_team == preferredTeam)
+    }
+
+    if (!currentSkin) {
+        currentSkin = matchingSkins[0]
+    }
+
+    return {
+        floatValue: String(currentSkin.weapon_wear ?? defaultValues.floatValue),
+        patternValue: String(currentSkin.weapon_seed ?? defaultValues.patternValue)
+    }
+}
+
+const applyCurrentParamsLocally = (payload) => {
+    if (!payload || typeof selectedSkins === 'undefined' || !Array.isArray(selectedSkins)) {
+        return
+    }
+
+    const teamsToUpdate = resolveSelectedTeams(payload.team)
+
+    selectedSkins.forEach((skin) => {
+        if (skin.weapon_defindex == payload.weaponid && skin.weapon_paint_id == payload.paintid && teamsToUpdate.includes(skin.weapon_team)) {
+            skin.weapon_wear = payload.float
+            skin.weapon_seed = payload.pattern
+        }
+    })
+}
+
 const weaponIds = {
     "weapon_deagle": 1,
     "weapon_elite": 2,
@@ -322,12 +387,13 @@ const weaponIds = {
     "studded_hydra_gloves": 5035
 }
 
-const editModal = (img, weaponName, paintName, weaponId, paintId, floatValue = '0.000001', patternValue = '0') => {
+const editModal = (img, weaponName, paintName, weaponId, paintId) => {
     document.getElementById('modalImg').src = img
     document.getElementById('modalWeapon').innerText = weaponName
     document.getElementById('modalPaint').innerText = paintName
     currentWeaponId = weaponIds[weaponId] || weaponId
     currentPaintId = paintId
+    const { floatValue, patternValue } = getCurrentSkinParams(weaponId, paintId)
     syncFloatInputs(floatValue)
 
     const patternInput = document.getElementById('pattern')
@@ -346,8 +412,17 @@ const changeParams = () => {
     let steamid = user.id
     let weaponid = currentWeaponId
     let paintid = currentPaintId
-    let float = document.getElementById("float").value
-    let pattern = document.getElementById("pattern").value
+    let float = document.getElementById("float").value || '0.000001'
+    let pattern = document.getElementById("pattern").value || '1'
+    const team = window.selectedTeam || 'both'
+
+    window.pendingParamUpdate = {
+        weaponid,
+        paintid,
+        float,
+        pattern,
+        team
+    }
 
     document.getElementById('modalButton').innerHTML = 
         `
@@ -362,11 +437,13 @@ const changeParams = () => {
         paintid: paintid,
         float: float,
         pattern: pattern,
-        team: window.selectedTeam || 'both'
+        team
     })
 }
 
 socket.on('params-changed', () => {
+    applyCurrentParamsLocally(window.pendingParamUpdate)
+    window.pendingParamUpdate = null
     document.getElementById('modalButton').innerHTML = langObject.change
     const modalElement = document.getElementById('patternFloat')
     if (modalElement && window.bootstrap && window.bootstrap.Modal) {

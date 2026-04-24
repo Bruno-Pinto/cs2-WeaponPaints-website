@@ -407,8 +407,6 @@ window.knifeSkins = (knifeType) => {
             let steamid = user.id
             let weaponid = getWeaponDefindex(element.weapon.id)
             let paintid = element.paint_index
-            let float = 0.000001
-            let pattern = 0
 
             // Get color of item for card
             if (element.category.id == 'sfui_invpanel_filter_melee') { 
@@ -432,8 +430,6 @@ window.knifeSkins = (knifeType) => {
 
             if (matchingSkins.length > 0) {
                 active = 'active-card'
-                float = matchingSkins[0].weapon_wear
-                pattern = matchingSkins[0].weapon_seed
             }
 
             // Always show team badges when a skin is selected
@@ -454,7 +450,7 @@ window.knifeSkins = (knifeType) => {
                         </div>
                     </div>
 
-                    <button onclick="editModal(\'${element.image}\', \'${element.weapon.name}\', \'${element.pattern.name} ${phase}\', \'${element.weapon.id}\' , \'${element.paint_index}\', \'${float}\', \'${pattern}\')" style="z-index: 3;" class="settings d-flex justify-content-center align-items-center bg-light text-dark rounded-circle" data-bs-toggle="modal" data-bs-target="#patternFloat">
+                    <button onclick="editModal(\'${element.image}\', \'${element.weapon.name}\', \'${element.pattern.name} ${phase}\', \'${element.weapon.id}\' , \'${element.paint_index}\')" style="z-index: 3;" class="settings d-flex justify-content-center align-items-center bg-light text-dark rounded-circle" data-bs-toggle="modal" data-bs-target="#patternFloat">
                         <i class="fa-solid fa-gear"></i>
                     </button>
 
