@@ -1,489 +1,379 @@
+window.socket = io()
 const socket = window.socket
 
-let skinsTemp = await fetch(`/js/json/skins/${lang}-skins.json`)
-let defaultsTemp = await fetch(`/js/json/defaults/${lang}-defaults.json`)
-let agentsTemp = await fetch(`/js/json/skins/agents.json`)
-let musicTemp = await fetch(`/js/json/skins/music_kits.json`)
+let currentWeaponId = ''
+let currentPaintId = ''
+window.currentSkinWeaponType = ''
+window.selectedTeam = 'both'
+window.previousCategory = null
 
-window.skinsObject = await skinsTemp.json()
-window.defaultsObject = await defaultsTemp.json()
-window.agentsObject = await agentsTemp.json()
-window.musicObject = await musicTemp.json()
-
-const sideBtnHandler = (activeBtn) => {
-    // remove active background
-    let allBtns = [
-        'sideBtnKnives',
-        'sideBtnGloves',
-        'sideBtnPistols',
-        'sideBtnRifles',
-        'sideBtnPPs',
-        'sideBtnShotguns',
-        'sideBtnUtility',
-        'sideBtnCTAgents',
-        'sideBtnTAgents',
-        'sideBtnMusic'
-    ]
-
-    allBtns.forEach(element => {
-        let elms = document.querySelectorAll(`[id='${element}']`);
- 
-        for(var i = 0; i < elms.length; i++) 
-            elms[i].classList.remove('active-side')
-    });
-    document.getElementById('sideBtnKnives').classList.remove('active-side')
-    document.getElementById('sideBtnGloves').classList.remove('active-side')
-    document.getElementById('sideBtnPistols').classList.remove('active-side')
-    document.getElementById('sideBtnRifles').classList.remove('active-side')
-    document.getElementById('sideBtnPPs').classList.remove('active-side')
-    document.getElementById('sideBtnShotguns').classList.remove('active-side')
-    document.getElementById('sideBtnUtility').classList.remove('active-side')
-    document.getElementById('sideBtnMusic').classList.remove('active-side')
-
-    
-    // add active background
-    let elms = document.querySelectorAll(`[id='${activeBtn}']`);
- 
-    for(var i = 0; i < elms.length; i++) 
-        elms[i].classList.add('active-side') 
-}
-
-const showDefaults = (type) => {
-    // clear main container
-    document.getElementById('skinsContainer').innerHTML = ''
-
-    if (type == 'sfui_invpanel_filter_melee') {
-        document.getElementById('skinsContainer').setAttribute('data-category', 'knives');
-        defaultsObject.forEach(knife => {
-            if (knife.weapon_type == 'sfui_invpanel_filter_melee') {
-                const matchingItems = getAllSelectedForItem(selectedKnives, {knife: knife.weapon_name});
-
-                if (matchingItems.length > 0) {
-                    changeKnifeSkinTemplate(knife, langObject, selectedKnife, matchingItems)
-                    const skinWeapon = selectedSkins.find(element => element.weapon_defindex == weaponIds[knife.weapon_name]);
-                    if (typeof skinWeapon != 'undefined') {
-                        changeSkinCard(knife, skinWeapon)
-                    }
-                } else {
-                    knivesTemplate(knife, langObject, selectedKnife)
-                }    
-                
-            }
-        })
-    } else if (type == 'sfui_invpanel_filter_gloves') {
-        document.getElementById('skinsContainer').setAttribute('data-category', 'gloves');
-        defaultsObject.forEach(glove => {
-            if (glove.weapon_type == 'sfui_invpanel_filter_gloves') {
-                const matchingItems = getAllSelectedForItem(selectedGloves, {weapon_defindex: weaponIds[glove.weapon_name]});
-                const matchingSkins = getAllSelectedForItem(selectedSkins, {weapon_defindex: weaponIds[glove.weapon_name]});
-                const skinToShow = matchingSkins.length > 0 ? matchingSkins[0] : null;
-
-                if (matchingItems.length > 0) {
-                    changeGlovesSkinTemplate(glove, langObject, selectedGloves, matchingItems)
-                } else {
-                    glovesTemplate(glove, langObject, selectedGloves)
-                }    
-                if (skinToShow) {
-                    changeSkinCard(glove, skinToShow)
-                }
-                
-            }
-        })
-    } else {
-        const categoryMap = {
-            'csgo_inventory_weapon_category_pistols': 'pistols',
-            'csgo_inventory_weapon_category_rifles': 'rifles',
-            'csgo_inventory_weapon_category_smgs': 'pps',
-            'csgo_inventory_weapon_category_heavy': 'shotguns',
-            'csgo_inventory_weapon_category_utility': 'utility'
-        };
-        document.getElementById('skinsContainer').setAttribute('data-category', categoryMap[type] || 'other');
-
-        defaultsObject.forEach(weapon => {
-            if (weapon.weapon_type == type) {
-                const matchingSkins = getAllSelectedForItem(selectedSkins, {
-                    weapon_defindex: weaponIds[weapon.weapon_name]
-                });
-
-                const ctSkin = matchingSkins.find(match => match.weapon_team == 3) || null;
-                const tSkin = matchingSkins.find(match => match.weapon_team == 2) || null;
-                const primarySkin = ctSkin || tSkin;
-                const secondarySkin = ctSkin && tSkin && ctSkin.weapon_paint_id != tSkin.weapon_paint_id ? tSkin : null;
-
-                if (primarySkin) {
-                    changeSkinTemplate(weapon, langObject, selectedKnife, '')
-                    changeSkinCard(weapon, primarySkin, secondarySkin)
-                } else {
-                    defaultsTemplate(weapon, langObject, lang)
-                }        
-            }
-        })
+window.goBack = () => {
+    if (window.previousCategory && typeof window[window.previousCategory] === 'function') {
+        window[window.previousCategory]();
     }
 }
 
-const showKnives = () => {
-    window.trackCategory('showKnives')
-    sideBtnHandler('sideBtnKnives')
-    showDefaults('sfui_invpanel_filter_melee')
-}
-
-const showGloves = () => {
-    window.trackCategory('showGloves')
-    sideBtnHandler('sideBtnGloves')
-    showDefaults('sfui_invpanel_filter_gloves')
-}
-
-const showPistols = () => {
-    window.trackCategory('showPistols')
-    sideBtnHandler('sideBtnPistols')
-    showDefaults('csgo_inventory_weapon_category_pistols')
-}
-
-const showRifles = () => {
-    window.trackCategory('showRifles')
-    sideBtnHandler('sideBtnRifles')
-    showDefaults('csgo_inventory_weapon_category_rifles')
-}
-
-const showSniperRifles = () => {
-    window.trackCategory('showSniperRifles')
-    sideBtnHandler('sideBtnSniperRifles')
-    showDefaults('csgo_inventory_weapon_category_rifles')
-}
-
-const showPPs = () => {
-    window.trackCategory('showPPs')
-    sideBtnHandler('sideBtnPPs')
-    showDefaults('csgo_inventory_weapon_category_smgs')
-}
-    
-
-const showShotguns = () => {
-    window.trackCategory('showShotguns')
-    sideBtnHandler('sideBtnShotguns')
-    showDefaults('csgo_inventory_weapon_category_heavy')
-}
-
-const showP = () => {
-    window.trackCategory('showP')
-    sideBtnHandler('sideBtnP')
-    showDefaults('csgo_inventory_weapon_category_heavy')
-}
-
-const showUtility = () => {
-    window.trackCategory('showUtility')
-    sideBtnHandler('sideBtnUtility')
-    showDefaults('csgo_inventory_weapon_category_utility')
-}
-
-const showCTAgents = () => {
-    window.trackCategory('showCTAgents')
-    sideBtnHandler('sideBtnCTAgents')
-    showAgents('ct')
-}
-
-const showTAgents = () => {
-    window.trackCategory('showTAgents')
-    sideBtnHandler('sideBtnTAgents')
-    showAgents('t')
-}
-
-const showMusic = () => {
-    sideBtnHandler('sideBtnMusic')
-    showMusicKits()
-}
-
-window.showKnives = showKnives
-window.showGloves = showGloves
-window.showPistols = showPistols
-window.showRifles = showRifles
-window.showSniperRifles = showSniperRifles
-window.showPPs = showPPs
-window.showShotguns = showShotguns
-window.showP = showP
-window.showUtility = showUtility
-window.showCTAgents = showCTAgents
-window.showTAgents = showTAgents
-window.showMusic = showMusic
-
-const sideBtns = document.querySelectorAll('[data-type="sideBtn"]')
-sideBtns.forEach(btn => {
-    let attribute = btn.getAttribute('data-btn-type')
-    switch (attribute) {
-        case 'knives':
-            btn.addEventListener('click', showKnives)
-            break;
-        case 'gloves':
-            btn.addEventListener('click', showGloves)
-            break;
-        case 'pistols':
-            btn.addEventListener('click', showPistols)
-            break;
-        case 'rifles':
-            btn.addEventListener('click', showRifles)
-            break;
-        case 'smgs':
-            btn.addEventListener('click', showPPs)
-            break;
-        case 'heavy':
-            btn.addEventListener('click', showP)
-            break;
-        case 'utlility':
-            btn.addEventListener('click', showUtility)
-            break;
-        case 'ctAgents':
-            btn.addEventListener('click', showCTAgents)
-            break;
-        case 'tAgents':
-            btn.addEventListener('click', showTAgents)
-            break;
-        case 'music':
-            btn.addEventListener('click', showMusic)
-            break;
-        default:
-            break;
+window.showBackButton = (show = true) => {
+    const backBtn = document.getElementById('backBtn');
+    if (backBtn) {
+        backBtn.style.display = show ? '' : 'none';
     }
-})
-
-window.changeKnife = (weaponid, team = 'both') => {
-    socket.emit('change-knife', {weaponid: weaponid, steamUserId: user.id, team: team})
-    document.getElementById(`loading-${weaponid}`).style.visibility = 'visible'
-    document.getElementById(`loading-${weaponid}`).style.opacity = 1
 }
 
-window.changeGlove = (weaponid, team = 'both') => {
-    socket.emit('change-glove', {weaponid: weaponIds[weaponid], steamUserId: user.id, team: team})
-    document.getElementById(`loading-${weaponid}`).style.visibility = 'visible'
-    document.getElementById(`loading-${weaponid}`).style.opacity = 1
+window.trackCategory = (categoryName) => {
+    window.previousCategory = categoryName;
+    window.showBackButton(categoryName !== null);
 }
 
-window.changeSkin = (steamid, weaponid, paintid, team = 'both') => {
-    socket.emit('change-skin', {steamid: steamid, weaponid: weaponid, paintid: paintid, team: team})
-    document.getElementById(`loading-${weaponid}-${paintid}`).style.visibility = 'visible'
-    document.getElementById(`loading-${weaponid}-${paintid}`).style.opacity = 1
-}
-
-window.changeAgent = (steamid, model, team) => {
-    console.log(steamid, model, team)
-    socket.emit('change-agent', {steamid: steamid, model: model, team: team})
-    document.getElementById(`loading-${model}`).style.visibility = 'visible'
-    document.getElementById(`loading-${model}`).style.opacity = 1
-}
-
-window.changeMusic = (steamid, id, team = 'both') => {
-    console.log(steamid, id)
-    socket.emit('change-music', {steamid: steamid, id: id, team: team})
-    document.getElementById(`loading-${id}`).style.visibility = 'visible'
-    document.getElementById(`loading-${id}`).style.opacity = 1
-}
-
-window.resetSkin = (weaponid, steamid, team = 'both') => {
-    console.log(steamid, weaponid)
-    socket.emit('reset-skin', {steamid: steamid || user.id, weaponid: weaponid, team: team})
-}
-
-window.unequipSkin = (weaponid, steamid, paintid) => {
-    // Find which teams have this skin selected
-    const matchingSkins = selectedSkins.filter(element => {
-        return element.weapon_defindex == weaponid && element.weapon_paint_id == paintid;
-    });
-
-    if (matchingSkins.length === 0) {
+// Refresh current view to apply filter
+function refreshCurrentCategory() {
+    const currentCategory = document.getElementById('skinsContainer').getAttribute('data-category');
+    if (!currentCategory) {
         return;
     }
 
-    const teams = new Set(matchingSkins.map(skin => skin.weapon_team));
-    let team = 'both';
+    switch(currentCategory) {
+        case 'knives': showKnives(); break;
+        case 'gloves': showGloves(); break;
+        case 'pistols': showPistols(); break;
+        case 'rifles': showRifles(); break;
+        case 'pps': showPPs(); break;
+        case 'shotguns': showShotguns(); break;
+        case 'utility': showUtility(); break;
+        case 'ct-agents': showCTAgents(); break;
+        case 't-agents': showTAgents(); break;
+        case 'music': showMusic(); break;
+        case 'skins':
+            if (window.currentSkinWeaponType) {
+                knifeSkins(window.currentSkinWeaponType);
+            }
+            break;
+    }
+}
 
-    if (teams.size === 1) {
-        if (teams.has(2)) {
-            team = 't';
-        } else if (teams.has(3)) {
-            team = 'ct';
-        }
+window.refreshCurrentCategory = refreshCurrentCategory
+
+// Team filter management
+function setTeamFilter(team) {
+    window.selectedTeam = team;
+    if (team !== 'both') {
+        window.lastNonBothTeam = team;
     }
 
-    resetSkin(weaponid, steamid, team);
+    // Update button states
+    const bothButton = document.getElementById('teamBoth');
+    if (bothButton) {
+        bothButton.className = team === 'both' ? 'btn btn-primary active' : 'btn btn-outline-primary';
+    }
+    document.getElementById('teamCT').className = team === 'ct' ? 'btn btn-primary active' : 'btn btn-outline-primary';
+    document.getElementById('teamT').className = team === 't' ? 'btn btn-primary active' : 'btn btn-outline-primary';
+
+    refreshCurrentCategory();
+}
+
+// Helper to get team badge HTML
+function getTeamBadge(label) {
+    if (!label) {
+        return '';
+    }
+
+    let badgeClass = 'bg-secondary text-light';
+    if (label === 'T') {
+        badgeClass = 'bg-warning text-dark';
+    } else if (label === 'CT') {
+        badgeClass = 'bg-info text-dark';
+    }
+
+    return `<span class="badge ${badgeClass} position-absolute top-0 start-0 m-2" style="z-index: 10;">${label}</span>`;
+}
+
+// Helper to build a single badge for all matches
+function getTeamBadgeForMatches(matches) {
+    if (!matches || matches.length === 0) {
+        return '';
+    }
+
+    const teams = new Set(matches.map(match => match.weapon_team));
+    if (teams.has(2) && teams.has(3)) {
+        return getTeamBadge('both');
+    }
+
+    if (teams.has(2)) {
+        return getTeamBadge('T');
+    }
+
+    if (teams.has(3)) {
+        return getTeamBadge('CT');
+    }
+
+    return '';
+}
+
+function getFloatLabel(value) {
+    const floatValue = Number(value);
+
+    if (typeof langObject === 'undefined' || !Number.isFinite(floatValue) || !langObject.modal || !Array.isArray(langObject.modal.patternButtons)) {
+        return '';
+    }
+
+    let index = 0;
+    if (floatValue >= 0.45) {
+        index = 4;
+    } else if (floatValue >= 0.38) {
+        index = 3;
+    } else if (floatValue >= 0.15) {
+        index = 2;
+    } else if (floatValue >= 0.07) {
+        index = 1;
+    }
+
+    return langObject.modal.patternButtons[index]?.longName || '';
+}
+
+function syncFloatInputs(value) {
+    const floatSlider = document.getElementById('floatSlider');
+    const floatInput = document.getElementById('float');
+    const floatText = document.getElementById('floatText');
+    const nextValue = value ?? '0.000001';
+
+    if (floatSlider) {
+        floatSlider.value = nextValue;
+    }
+
+    if (floatInput) {
+        floatInput.value = nextValue;
+    }
+
+    if (floatText) {
+        floatText.textContent = getFloatLabel(nextValue);
+    }
+}
+
+window.setFloat = (value) => {
+    syncFloatInputs(value);
+}
+
+function resetEditModal() {
+    const form = document.getElementById('patternFloat');
+    const modalButton = document.getElementById('modalButton');
+
+    currentWeaponId = '';
+    currentPaintId = '';
+
+    syncFloatInputs('0.000001');
+    const patternInput = document.getElementById('pattern');
+    if (patternInput) {
+        patternInput.value = '0';
+    }
+
+    if (modalButton && typeof langObject !== 'undefined') {
+        modalButton.innerHTML = langObject.change;
+    }
+
+    return form;
+}
+
+// Helper to check if item is selected for current team
+function isSelectedForTeam(items, matchCriteria) {
+    if (!items || !Array.isArray(items)) return null;
+
+    const teamMap = { 'both': [2, 3], 'ct': [3], 't': [2] };
+    const teamsToCheck = teamMap[window.selectedTeam] || [2, 3];
+
+    const matches = items.filter(item => {
+        const criteriaMatch = Object.keys(matchCriteria).every(key => item[key] == matchCriteria[key]);
+        return criteriaMatch && teamsToCheck.includes(item.weapon_team);
+    });
+
+    return matches.length > 0 ? matches : null;
+}
+
+// Helper to get all selected items (for showing badges in "both" mode)
+function getAllSelectedForItem(items, matchCriteria) {
+    if (!items || !Array.isArray(items)) return [];
+
+    return items.filter(item => {
+        return Object.keys(matchCriteria).every(key => item[key] == matchCriteria[key]);
+    });
 }
 
 
-socket.on('skin-reset', data => {
-    const teamMap = { 'both': [2, 3], 'ct': [3], 't': [2] };
-    const teamsToClear = teamMap[data.team || 'both'] || [2, 3];
+function getKeyByValue(object, value) {
+    return Object.keys(object).find(key => object[key] === value);
+}
 
-    selectedSkins = selectedSkins.filter(element => {
-        return element.weapon_defindex != data.weaponid || !teamsToClear.includes(element.weapon_team);
+const weaponIds = {
+    "weapon_deagle": 1,
+    "weapon_elite": 2,
+    "weapon_fiveseven": 3,
+    "weapon_glock": 4,
+    "weapon_ak47": 7,
+    "weapon_aug": 8,
+    "weapon_awp": 9,
+    "weapon_famas": 10,
+    "weapon_g3sg1": 11,
+    "weapon_galilar": 13,
+    "weapon_m249": 14,
+    "weapon_m4a1": 16,
+    "weapon_mac10": 17,
+    "weapon_p90": 19,
+    "weapon_mp5sd": 23,
+    "weapon_ump45": 24,
+    "weapon_xm1014": 25,
+    "weapon_bizon": 26,
+    "weapon_mag7": 27,
+    "weapon_negev": 28,
+    "weapon_sawedoff": 29,
+    "weapon_tec9": 30,
+    "weapon_taser": 31,
+    "weapon_hkp2000": 32,
+    "weapon_mp7": 33,
+    "weapon_mp9": 34,
+    "weapon_nova": 35,
+    "weapon_p250": 36,
+    "weapon_shield": 37,
+    "weapon_scar20": 38,
+    "weapon_sg556": 39,
+    "weapon_ssg08": 40,
+    "weapon_knifegg": 41,
+    "weapon_knife": 42,
+    "weapon_flashbang": 43,
+    "weapon_hegrenade": 44,
+    "weapon_smokegrenade": 45,
+    "weapon_molotov": 46,
+    "weapon_decoy": 47,
+    "weapon_incgrenade": 48,
+    "weapon_c4": 49,
+    "weapon_healthshot": 57,
+    "weapon_knife_t": 59,
+    "weapon_m4a1_silencer": 60,
+    "weapon_usp_silencer": 61,
+    "weapon_cz75a": 63,
+    "weapon_revolver": 64,
+    "weapon_tagrenade": 68,
+    "weapon_fists": 69,
+    "weapon_breachcharge": 70,
+    "weapon_tablet": 72,
+    "weapon_melee": 74,
+    "weapon_axe": 75,
+    "weapon_hammer": 76,
+    "weapon_spanner": 78,
+    "weapon_knife_ghost": 80,
+    "weapon_firebomb": 81,
+    "weapon_diversion": 82,
+    "weapon_frag_grenade": 83,
+    "weapon_snowball": 84,
+    "weapon_bumpmine": 85,
+    "weapon_bayonet": 500,
+    "weapon_knife_css": 503,
+    "weapon_knife_flip": 505,
+    "weapon_knife_gut": 506,
+    "weapon_knife_karambit": 507,
+    "weapon_knife_m9_bayonet": 508,
+    "weapon_knife_tactical": 509,
+    "weapon_knife_falchion": 512,
+    "weapon_knife_survival_bowie": 514,
+    "weapon_knife_butterfly": 515,
+    "weapon_knife_push": 516,
+    "weapon_knife_cord": 517,
+    "weapon_knife_canis": 518,
+    "weapon_knife_ursus": 519,
+    "weapon_knife_gypsy_jackknife": 520,
+    "weapon_knife_outdoor": 521,
+    "weapon_knife_stiletto": 522,
+    "weapon_knife_widowmaker": 523,
+    "weapon_knife_skeleton": 525,
+    "weapon_knife_kukri": 526,
+    "studded_brokenfang_gloves": 4725,
+    "studded_bloodhound_gloves": 5027,
+    "t_gloves": 5028,
+    "ct_gloves": 5029,
+    "sporty_gloves": 5030,
+    "slick_gloves": 5031,
+    "leather_handwraps": 5032,
+    "motorcycle_gloves": 5033,
+    "specialist_gloves": 5034,
+    "studded_hydra_gloves": 5035
+}
+
+const editModal = (img, weaponName, paintName, weaponId, paintId, floatValue = '0.000001', patternValue = '0') => {
+    document.getElementById('modalImg').src = img
+    document.getElementById('modalWeapon').innerText = weaponName
+    document.getElementById('modalPaint').innerText = paintName
+    currentWeaponId = weaponIds[weaponId] || weaponId
+    currentPaintId = paintId
+    syncFloatInputs(floatValue)
+
+    const patternInput = document.getElementById('pattern')
+    if (patternInput) {
+        patternInput.value = patternValue
+    }
+
+    const modalButton = document.getElementById('modalButton')
+    if (modalButton && typeof langObject !== 'undefined') {
+        modalButton.innerHTML = langObject.change
+    }
+    console.log(img, weaponName, paintName, currentWeaponId, currentPaintId)
+}
+
+const changeParams = () => {
+    let steamid = user.id
+    let weaponid = currentWeaponId
+    let paintid = currentPaintId
+    let float = document.getElementById("float").value
+    let pattern = document.getElementById("pattern").value
+
+    document.getElementById('modalButton').innerHTML = 
+        `
+            <div class="spinner-border spinner-border-sm" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        `
+
+    socket.emit('change-params', {
+        steamid: steamid,
+        weaponid: weaponid,
+        paintid: paintid,
+        float: float,
+        pattern: pattern,
+        team: window.selectedTeam || 'both'
     })
+}
 
-    refreshCurrentCategory()
-})
-
-socket.on('knife-changed', data => {
-    selectedKnives = data.knives
-    selectedKnife.knife = data.knife
-
-    refreshCurrentCategory()
-
-    const loadingElement = document.getElementById(`loading-${data.knife}`)
-    if (loadingElement) {
-        loadingElement.style.opacity = 0
-        loadingElement.style.visibility = 'hidden'
+socket.on('params-changed', () => {
+    document.getElementById('modalButton').innerHTML = langObject.change
+    const modalElement = document.getElementById('patternFloat')
+    if (modalElement && window.bootstrap && window.bootstrap.Modal) {
+        const modal = window.bootstrap.Modal.getOrCreateInstance(modalElement)
+        modal.hide()
+        setTimeout(() => {
+            document.querySelectorAll('.modal-backdrop').forEach((backdrop) => backdrop.remove())
+            document.body.classList.remove('modal-open')
+            document.body.style.removeProperty('padding-right')
+        }, 200)
     }
+    showSuccessNotification()
+    resetEditModal()
 })
 
-socket.on('glove-changed', data => {
-    selectedGloves = data.gloves
+const floatSlider = document.getElementById('floatSlider')
+const floatInput = document.getElementById('float')
+if (floatSlider && floatInput) {
+    floatSlider.addEventListener('input', (event) => syncFloatInputs(event.target.value))
+    floatInput.addEventListener('input', (event) => syncFloatInputs(event.target.value))
+    syncFloatInputs(floatInput.value || floatSlider.value)
+}
 
-    refreshCurrentCategory()
-
-    const gloves = getKeyByValue(weaponIds, data.weaponid)
-    const loadingElement = document.getElementById(`loading-${gloves}`)
-    if (loadingElement) {
-        loadingElement.style.opacity = 0
-        loadingElement.style.visibility = 'hidden'
+const showSuccessNotification = () => {
+    const notification = document.getElementById('successNotification')
+    if (notification) {
+        notification.style.display = 'block'
+        notification.style.opacity = '1'
+        setTimeout(() => {
+            notification.style.opacity = '0'
+            setTimeout(() => {
+                notification.style.display = 'none'
+            }, 300)
+        }, 2000)
     }
-})
-
-socket.on('skin-changed', data => {
-    selectedSkins = data.newSkins
-
-    refreshCurrentCategory()
-
-    const loadingElement = document.getElementById(`loading-${data.weaponid}-${data.paintid}`)
-    if (loadingElement) {
-        loadingElement.style.opacity = 0
-        loadingElement.style.visibility = 'hidden'
-    }
-})
-
-socket.on('agent-changed', data => {
-    selectedAgents = data.agents
-
-    refreshCurrentCategory()
-
-    const loadingElement = document.getElementById(`loading-${data.currentAgent}`)
-    if (loadingElement) {
-        loadingElement.style.opacity = 0
-        loadingElement.style.visibility = 'hidden'
-    }
-})
-
-socket.on('music-changed', data => {
-    selectedMusic = data.music
-
-    refreshCurrentCategory()
-
-    const loadingElement = document.getElementById(`loading-${data.currentMusic}`)
-    if (loadingElement) {
-    window.trackCategory('knifeSkins')
-        loadingElement.style.opacity = 0
-        loadingElement.style.visibility = 'hidden'
-    }
-})
-
-window.knifeSkins = (knifeType) => {
-    // clear main container
-    document.getElementById('skinsContainer').innerHTML = ''
-    document.getElementById('skinsContainer').setAttribute('data-category', 'skins');
-    window.currentSkinWeaponType = knifeType
-
-    skinsObject.forEach(element => {
-        if (element.weapon.id == knifeType) {
-            let rarities = {
-                "#b0c3d9": "common",
-                "#5e98d9": "uncommon",
-                "#4b69ff": "rare",
-                "#8847ff": "mythical",
-                "#d32ce6": "legendary",
-                "#eb4b4b": "ancient",
-                "#e4ae39": "contraband"
-            }
-
-            let bgColor = 'card-uncommon'
-            let phase  = ''
-            let active = ''
-            let steamid = user.id
-            let weaponid = weaponIds[element.weapon.id]
-            let paintid = element.paint_index
-            let float = 0.000001
-            let pattern = 0
-
-            // Get color of item for card
-            if (element.category.id == 'sfui_invpanel_filter_melee') { 
-                // Gold if knife
-                bgColor = 'card-gold'
-            } else {
-                // Anything else
-                bgColor = `card-${rarities[element.rarity.color]}`
-            }
-
-            // Phase for Dopplers
-            if (typeof element.phase != 'undefined') {
-                phase = `(${element.phase})`
-            }
-
-            // Check if skin is selected for current team
-            const matchingSkins = getAllSelectedForItem(selectedSkins, {
-                weapon_paint_id: element.paint_index,
-                weapon_defindex: weaponIds[element.weapon.id]
-            });
-
-            if (matchingSkins.length > 0) {
-                active = 'active-card'
-                float = matchingSkins[0].weapon_wear
-                pattern = matchingSkins[0].weapon_seed
-            }
-
-            // Always show team badges when a skin is selected
-            let teamBadges = '';
-            if (matchingSkins.length > 0) {
-                teamBadges = getTeamBadgeForMatches(matchingSkins);
-            }
-
-            let card = document.createElement('div')
-            card.classList.add('col-6', 'col-sm-4', 'col-md-3', 'p-2')
-
-            card.innerHTML = `
-                <div id="weapon-${weaponIds[element.weapon.id]}-${element.paint_index}" class="weapon-card rounded-3 d-flex flex-column ${active} ${bgColor} contrast-reset pb-2 position-relative" data-type="skinCard" data-btn-type="${weaponIds[element.weapon.id]}-${element.paint_index}">
-                    ${teamBadges}
-                    <div style="z-index: 3;" class="loading-card d-flex justify-content-center align-items-center w-100 h-100" id="loading-${weaponIds[element.weapon.id]}-${element.paint_index}">
-                        <div class="spinner-border spinner-border-xl" role="status">
-                            <span class="visually-hidden">Loading...</span>
-                        </div>
-                    </div>
-
-                    <button onclick="editModal(\'${element.image}\', \'${element.weapon.name}\', \'${element.pattern.name} ${phase}\', \'${element.weapon.id}\' , \'${element.paint_index}\', \'${float}\', \'${pattern}\')" style="z-index: 3;" class="settings d-flex justify-content-center align-items-center bg-light text-dark rounded-circle" data-bs-toggle="modal" data-bs-target="#patternFloat">
-                        <i class="fa-solid fa-gear"></i>
-                    </button>
-
-                    <img src="${element.image}" class="weapon-img mx-auto my-3" loading="lazy" width="181px" height="136px" alt="${element.name}">
-                    
-                    <div class="d-flex align-items-center g-3">
-                        <p class="m-0 ms-3 text-secondary">
-                            <small class="text-roboto">
-                                ${element.weapon.name}
-                            </small>
-                        </p>
-                        <div class="skin-dot mx-2"></div>
-                    </div>
-                    
-                    <h5 class="weapon-skin-title text-roboto ms-3">
-                        ${element.pattern.name} ${phase}
-                    </h5>
-
-                    <div class="d-flex gap-2 px-3 mt-auto">
-                        <button class="btn btn-sm btn-outline-light w-100" onclick="unequipSkin(${weaponIds[element.weapon.id]}, '${user.id}', ${element.paint_index})">Unequip</button>
-                    </div>
-                    <div class="d-flex gap-2 px-3 mt-2">
-                        <button class="btn btn-sm btn-primary w-100" onclick="changeSkin('${user.id}', '${weaponIds[element.weapon.id]}', ${element.paint_index}, 't')">Equip T</button>
-                        <button class="btn btn-sm btn-primary w-100" onclick="changeSkin('${user.id}', '${weaponIds[element.weapon.id]}', ${element.paint_index}, 'ct')">Equip CT</button>
-                        <button class="btn btn-sm btn-warning w-100" onclick="changeSkin('${user.id}', '${weaponIds[element.weapon.id]}', ${element.paint_index}, 'both')">Both</button>
-                    </div>
-                </div>
-            `
-
-            document.getElementById('skinsContainer').appendChild(card)
-        }
-        
-    });
 }
