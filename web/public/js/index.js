@@ -95,7 +95,7 @@ function getTeamBadgeForMatches(matches) {
 
     const teams = new Set(matches.map(match => match.weapon_team));
     if (teams.has(2) && teams.has(3)) {
-        return getTeamBadge('Both');
+        return getTeamBadge('both');
     }
 
     if (teams.has(2)) {
@@ -107,6 +107,70 @@ function getTeamBadgeForMatches(matches) {
     }
 
     return '';
+}
+
+function getFloatLabel(value) {
+    const floatValue = Number(value);
+
+    if (typeof langObject === 'undefined' || !Number.isFinite(floatValue) || !langObject.modal || !Array.isArray(langObject.modal.patternButtons)) {
+        return '';
+    }
+
+    let index = 0;
+    if (floatValue >= 0.45) {
+        index = 4;
+    } else if (floatValue >= 0.38) {
+        index = 3;
+    } else if (floatValue >= 0.15) {
+        index = 2;
+    } else if (floatValue >= 0.07) {
+        index = 1;
+    }
+
+    return langObject.modal.patternButtons[index]?.longName || '';
+}
+
+function syncFloatInputs(value) {
+    const floatSlider = document.getElementById('floatSlider');
+    const floatInput = document.getElementById('float');
+    const floatText = document.getElementById('floatText');
+    const nextValue = value ?? '0.000001';
+
+    if (floatSlider) {
+        floatSlider.value = nextValue;
+    }
+
+    if (floatInput) {
+        floatInput.value = nextValue;
+    }
+
+    if (floatText) {
+        floatText.textContent = getFloatLabel(nextValue);
+    }
+}
+
+window.setFloat = (value) => {
+    syncFloatInputs(value);
+}
+
+function resetEditModal() {
+    const form = document.getElementById('patternFloat');
+    const modalButton = document.getElementById('modalButton');
+
+    currentWeaponId = '';
+    currentPaintId = '';
+
+    syncFloatInputs('0.000001');
+    const patternInput = document.getElementById('pattern');
+    if (patternInput) {
+        patternInput.value = '0';
+    }
+
+    if (modalButton && typeof langObject !== 'undefined') {
+        modalButton.innerHTML = langObject.change;
+    }
+
+    return form;
 }
 
 // Helper to check if item is selected for current team
@@ -232,12 +296,23 @@ const weaponIds = {
     "studded_hydra_gloves": 5035
 }
 
-const editModal = (img, weaponName, paintName, weaponId, paintId) => {
+const editModal = (img, weaponName, paintName, weaponId, paintId, floatValue = '0.000001', patternValue = '0') => {
     document.getElementById('modalImg').src = img
     document.getElementById('modalWeapon').innerText = weaponName
     document.getElementById('modalPaint').innerText = paintName
-    currentWeaponId = weaponIds[weaponId]
+    currentWeaponId = weaponIds[weaponId] || weaponId
     currentPaintId = paintId
+    syncFloatInputs(floatValue)
+
+    const patternInput = document.getElementById('pattern')
+    if (patternInput) {
+        patternInput.value = patternValue
+    }
+
+    const modalButton = document.getElementById('modalButton')
+    if (modalButton && typeof langObject !== 'undefined') {
+        modalButton.innerHTML = langObject.change
+    }
     console.log(img, weaponName, paintName, currentWeaponId, currentPaintId)
 }
 
@@ -261,7 +336,7 @@ const changeParams = () => {
         paintid: paintid,
         float: float,
         pattern: pattern,
-        team: window.selectedTeam
+        team: window.selectedTeam || 'both'
     })
 }
 
@@ -278,7 +353,16 @@ socket.on('params-changed', () => {
         }, 200)
     }
     showSuccessNotification()
+    resetEditModal()
 })
+
+const floatSlider = document.getElementById('floatSlider')
+const floatInput = document.getElementById('float')
+if (floatSlider && floatInput) {
+    floatSlider.addEventListener('input', (event) => syncFloatInputs(event.target.value))
+    floatInput.addEventListener('input', (event) => syncFloatInputs(event.target.value))
+    syncFloatInputs(floatInput.value || floatSlider.value)
+}
 
 const showSuccessNotification = () => {
     const notification = document.getElementById('successNotification')

@@ -136,9 +136,19 @@ window.changeSkinCard = (weapon, selectedSkin, secondarySkin = null) => {
 
         // Left side: primary skin, right side: secondary skin
         wrapper.innerHTML = `
-            <img src="${primarySkin.image}" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; clip-path: inset(0 50% 0 0); filter: drop-shadow(0px 0px 20px ${primarySkin.rarity.color});" loading="lazy" alt="${primarySkin.pattern ? primarySkin.pattern.name : ''}">
-            <img src="${secondary.image}" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; clip-path: inset(0 0 0 50%); filter: drop-shadow(0px 0px 20px ${secondary.rarity.color});" loading="lazy" alt="${secondary.pattern ? secondary.pattern.name : ''}">
+            <img data-skin-side="primary" src="${primarySkin.image}" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; clip-path: inset(0 50% 0 0);" loading="lazy" alt="${primarySkin.pattern ? primarySkin.pattern.name : ''}">
+            <img data-skin-side="secondary" src="${secondary.image}" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; clip-path: inset(0 0 0 50%);" loading="lazy" alt="${secondary.pattern ? secondary.pattern.name : ''}">
         `;
+
+        const primaryImg = wrapper.querySelector('[data-skin-side="primary"]');
+        if (primaryImg) {
+            primaryImg.style.filter = `drop-shadow(0px 0px 20px ${primarySkin.rarity.color})`;
+        }
+
+        const secondaryImg = wrapper.querySelector('[data-skin-side="secondary"]');
+        if (secondaryImg) {
+            secondaryImg.style.filter = `drop-shadow(0px 0px 20px ${secondary.rarity.color})`;
+        }
 
         if (existingImg) {
             existingImg.replaceWith(wrapper);
@@ -248,15 +258,10 @@ window.changeGlovesSkinTemplate = (gloves, langObject, selectedGloves, matchingI
     let card = document.createElement('div')
     card.classList.add('col-6', 'col-sm-4', 'col-md-3', 'p-2')
 
-    let buttonInner = langObject.setWeapon
-    let buttonFunc = `changeGlove(\'${gloves.weapon_name}\', ${selectedGloves.steamid})`
+    const selectedGloveSteamid = selectedGloves?.steamid || selectedGloves?.[0]?.steamid || user.id
 
     // check if gloves are selected
     let active = matchingItems && matchingItems.length > 0 ? 'active-card' : '';
-    if (active) {
-        buttonInner = langObject.changeSkin
-        buttonFunc =  `knifeSkins(\'${gloves.weapon_name}\')`
-    }
 
     // Generate team badges
     let teamBadges = '';
@@ -267,7 +272,7 @@ window.changeGlovesSkinTemplate = (gloves, langObject, selectedGloves, matchingI
     card.innerHTML = `
     <div class="rounded-3 d-flex flex-column card-common weapon-card ${active} weapon_knife position-relative" id="${gloves.weapon_name}">
         ${teamBadges}
-        <button id="reset-${gloves.weapon_name}" onclick="resetSkin(${gloves.weapon_defindex}, '${selectedGloves.steamid}')" style="z-index: 3;" class="revert d-flex justify-content-center align-items-center text-danger rounded-circle">
+        <button id="reset-${gloves.weapon_name}" onclick="resetSkin(${gloves.weapon_defindex}, '${selectedGloveSteamid}')" style="z-index: 3;" class="revert d-flex justify-content-center align-items-center text-danger rounded-circle">
             <i class="fa-solid fa-rotate-right"></i>
         </button>
 

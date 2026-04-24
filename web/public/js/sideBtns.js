@@ -279,7 +279,7 @@ window.changeMusic = (steamid, id, team = 'both') => {
 
 window.resetSkin = (weaponid, steamid, team = 'both') => {
     console.log(steamid, weaponid)
-    socket.emit('reset-skin', {steamid: user.id, weaponid: weaponid, team: team})
+    socket.emit('reset-skin', {steamid: steamid || user.id, weaponid: weaponid, team: team})
 }
 
 window.unequipSkin = (weaponid, steamid, paintid) => {
@@ -452,7 +452,7 @@ window.knifeSkins = (knifeType) => {
                         </div>
                     </div>
 
-                    <button onclick="editModal(\'${element.image}\', \'${element.weapon.name}\', \'${element.pattern.name} ${phase}\', \'${element.weapon.id}\' , \'${element.paint_index}\')" style="z-index: 3;" class="settings d-flex justify-content-center align-items-center bg-light text-dark rounded-circle" data-bs-toggle="modal" data-bs-target="#patternFloat">
+                    <button onclick="editModal(\'${element.image}\', \'${element.weapon.name}\', \'${element.pattern.name} ${phase}\', \'${element.weapon.id}\' , \'${element.paint_index}\', \'${float}\', \'${pattern}\')" style="z-index: 3;" class="settings d-flex justify-content-center align-items-center bg-light text-dark rounded-circle" data-bs-toggle="modal" data-bs-target="#patternFloat">
                         <i class="fa-solid fa-gear"></i>
                     </button>
 
