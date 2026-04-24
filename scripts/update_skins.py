@@ -59,10 +59,42 @@ def dump_json(path: Path, data: List[Dict]) -> None:
     )
 
 
-def append_missing(base_local: List[Dict], source: List[Dict]) -> Tuple[List[Dict], int]:
-    local_keys = {skin_key(item) for item in base_local if skin_key(item)[1] is not None}
-    missing = [item for item in source if skin_key(item)[1] is not None and skin_key(item) not in local_keys]
-    return base_local + missing, len(missing)
+def merge_localized_with_source(
+    base_local: List[Dict], source: List[Dict]
+) -> Tuple[List[Dict], int, int]:
+    """Keep localized rows, sync image URLs from source, and append missing rows.
+
+    This preserves translated names/descriptions in pt-BR/ru while ensuring
+    image links track upstream fixes.
+    """
+    source_by_key = {skin_key(item): item for item in source if skin_key(item)[1] is not None}
+
+    merged: List[Dict] = []
+    seen_keys = set()
+    synced_images = 0
+
+    for item in base_local:
+        key = skin_key(item)
+        if key[1] is None:
+            merged.append(item)
+            continue
+
+        seen_keys.add(key)
+        source_item = source_by_key.get(key)
+        if source_item is None:
+            merged.append(item)
+            continue
+
+        merged_item = dict(item)
+        source_image = source_item.get("image")
+        if source_image and merged_item.get("image") != source_image:
+            merged_item["image"] = source_image
+            synced_images += 1
+
+        merged.append(merged_item)
+
+    missing = [item for item in source if skin_key(item)[1] is not None and skin_key(item) not in seen_keys]
+    return merged + missing, len(missing), synced_images
 
 
 def summarize(name: str, before: Iterable[Dict], after: Iterable[Dict]) -> str:
@@ -106,13 +138,21 @@ def main() -> int:
 
     next_en = upstream_en
     next_zh = upstream_zh
-    next_pt, pt_added = append_missing(local_pt, upstream_en)
-    next_ru, ru_added = append_missing(local_ru, upstream_en)
+    next_pt, pt_added, pt_synced_images = merge_localized_with_source(local_pt, upstream_en)
+    next_ru, ru_added, ru_synced_images = merge_localized_with_source(local_ru, upstream_en)
 
     print(summarize("en", local_en, next_en))
     print(summarize("zh-CN", local_zh, next_zh))
-    print(summarize("pt-BR", local_pt, next_pt) + f" | appended_from_en={pt_added}")
-    print(summarize("ru", local_ru, next_ru) + f" | appended_from_en={ru_added}")
+    print(
+        summarize("pt-BR", local_pt, next_pt)
+        + f" | appended_from_en={pt_added}"
+        + f" | synced_images={pt_synced_images}"
+    )
+    print(
+        summarize("ru", local_ru, next_ru)
+        + f" | appended_from_en={ru_added}"
+        + f" | synced_images={ru_synced_images}"
+    )
 
     if not args.apply:
         print("Dry-run complete. Re-run with --apply to write files.")
