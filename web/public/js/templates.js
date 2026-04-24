@@ -140,10 +140,12 @@ window.changeKnifeSkinTemplate = (knife, langObject, selectedKnife, matchingItem
 }
 
 window.changeSkinCard = (weapon, selectedSkin, secondarySkin = null) => {
+    const getWeaponDefindex = (weaponId) => weaponIds[weaponId] || weaponId;
+
     const findSkin = (skinRow) => {
         if (!skinRow) return null;
         return skinsObject.find(skinWeapon => {
-            return weaponIds[skinWeapon.weapon.id] == weapon.weapon_defindex && skinWeapon.paint_index == skinRow.weapon_paint_id;
+            return getWeaponDefindex(skinWeapon.weapon.id) == weapon.weapon_defindex && skinWeapon.paint_index == skinRow.weapon_paint_id;
         }) || null;
     };
 

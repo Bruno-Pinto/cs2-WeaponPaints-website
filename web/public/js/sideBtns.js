@@ -1,5 +1,7 @@
 const socket = window.socket
 
+const getWeaponDefindex = (weaponId) => weaponIds[weaponId] || weaponId
+
 let skinsTemp = await fetch(`/js/json/skins/${lang}-skins.json`)
 let defaultsTemp = await fetch(`/js/json/defaults/${lang}-defaults.json`)
 let agentsTemp = await fetch(`/js/json/skins/agents.json`)
@@ -388,7 +390,7 @@ window.knifeSkins = (knifeType) => {
     window.currentSkinWeaponType = knifeType
 
     skinsObject.forEach(element => {
-        if (element.weapon.id == knifeType) {
+        if (getWeaponDefindex(element.weapon.id) == getWeaponDefindex(knifeType)) {
             let rarities = {
                 "#b0c3d9": "common",
                 "#5e98d9": "uncommon",
@@ -403,7 +405,7 @@ window.knifeSkins = (knifeType) => {
             let phase  = ''
             let active = ''
             let steamid = user.id
-            let weaponid = weaponIds[element.weapon.id]
+            let weaponid = getWeaponDefindex(element.weapon.id)
             let paintid = element.paint_index
             let float = 0.000001
             let pattern = 0
@@ -425,7 +427,7 @@ window.knifeSkins = (knifeType) => {
             // Check if skin is selected for current team
             const matchingSkins = getAllSelectedForItem(selectedSkins, {
                 weapon_paint_id: element.paint_index,
-                weapon_defindex: weaponIds[element.weapon.id]
+                weapon_defindex: getWeaponDefindex(element.weapon.id)
             });
 
             if (matchingSkins.length > 0) {
@@ -444,9 +446,9 @@ window.knifeSkins = (knifeType) => {
             card.classList.add('col-6', 'col-sm-4', 'col-md-3', 'p-2')
 
             card.innerHTML = `
-                <div id="weapon-${weaponIds[element.weapon.id]}-${element.paint_index}" class="weapon-card rounded-3 d-flex flex-column ${active} ${bgColor} contrast-reset pb-2 position-relative" data-type="skinCard" data-btn-type="${weaponIds[element.weapon.id]}-${element.paint_index}">
+                <div id="weapon-${weaponid}-${element.paint_index}" class="weapon-card rounded-3 d-flex flex-column ${active} ${bgColor} contrast-reset pb-2 position-relative" data-type="skinCard" data-btn-type="${weaponid}-${element.paint_index}">
                     ${teamBadges}
-                    <div style="z-index: 3;" class="loading-card d-flex justify-content-center align-items-center w-100 h-100" id="loading-${weaponIds[element.weapon.id]}-${element.paint_index}">
+                    <div style="z-index: 3;" class="loading-card d-flex justify-content-center align-items-center w-100 h-100" id="loading-${weaponid}-${element.paint_index}">
                         <div class="spinner-border spinner-border-xl" role="status">
                             <span class="visually-hidden">Loading...</span>
                         </div>
@@ -472,12 +474,12 @@ window.knifeSkins = (knifeType) => {
                     </h5>
 
                     <div class="d-flex gap-2 px-3 mt-auto">
-                        <button class="btn btn-sm btn-outline-light w-100" onclick="unequipSkin(${weaponIds[element.weapon.id]}, '${user.id}', ${element.paint_index})">Unequip</button>
+                        <button class="btn btn-sm btn-outline-light w-100" onclick="unequipSkin(${weaponid}, '${user.id}', ${element.paint_index})">Unequip</button>
                     </div>
                     <div class="d-flex gap-2 px-3 mt-2">
-                        <button class="btn btn-sm btn-primary w-100" onclick="changeSkin('${user.id}', '${weaponIds[element.weapon.id]}', ${element.paint_index}, 't')">Equip T</button>
-                        <button class="btn btn-sm btn-primary w-100" onclick="changeSkin('${user.id}', '${weaponIds[element.weapon.id]}', ${element.paint_index}, 'ct')">Equip CT</button>
-                        <button class="btn btn-sm btn-warning w-100" onclick="changeSkin('${user.id}', '${weaponIds[element.weapon.id]}', ${element.paint_index}, 'both')">Both</button>
+                        <button class="btn btn-sm btn-primary w-100" onclick="changeSkin('${user.id}', '${weaponid}', ${element.paint_index}, 't')">Equip T</button>
+                        <button class="btn btn-sm btn-primary w-100" onclick="changeSkin('${user.id}', '${weaponid}', ${element.paint_index}, 'ct')">Equip CT</button>
+                        <button class="btn btn-sm btn-warning w-100" onclick="changeSkin('${user.id}', '${weaponid}', ${element.paint_index}, 'both')">Both</button>
                     </div>
                 </div>
             `
