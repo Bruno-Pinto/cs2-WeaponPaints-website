@@ -10,7 +10,7 @@
     {
         "weapon_defindex": "17",
         "weapon_name": "weapon_mac10",
-        "paint": "0",
+        "image": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Tg_13jRBnOnJrv8iZT4OegbJtqLP-FC3Svzv5vVhQDy9kSIlvzyGkbDqKCfRO0RPVssnHaMUsES-k9HjNrixsgbd3YIRni7-inlO5i5t6-pRAqIs_aOFjg_JZbU5sI5Deqh-Veq-pA",
         "image": "https://raw.githubusercontent.com/Nereziel/cs2-WeaponPaints/main/website/img/skins/weapon_mac10.png",
         "paint_name": "MAC-10",
         "weapon_type": "csgo_inventory_weapon_category_smgs"
@@ -80,7 +80,7 @@
         "weapon_type": "csgo_inventory_weapon_category_rifles"
     },
     {
-        "weapon_defindex": "60",
+            "image": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Tg_13jRBnOnJrv8iZT4OegbJtqLP-FC3Svzv5vVhQDy9kSIlvzyGkbDqKCfRO0RPVssnHaMUsES-k9HjNrixsgbd3YIRni7-inlO5i5t6-pRAqIs_aOFjg_JZbU5sI5Deqh-Veq-pA",
         "weapon_name": "weapon_m4a1_silencer",
         "paint": "0",
         "image": "https://raw.githubusercontent.com/Nereziel/cs2-WeaponPaints/main/website/img/skins/weapon_m4a1_silencer.png",
@@ -88,7 +88,7 @@
         "weapon_type": "csgo_inventory_weapon_category_rifles"
     },
     {
-        "weapon_defindex": "39",
+            "image": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Tk5UvzWCL2kpn2-DFk6P6hfqFSM-CcHHOvw-t3tPZmXSKMkRQmvjKLnpzGMT7VLlp1Zc4pEr9OrBWxxofvNOLitQKPid5Hznr-3C9JvHtu4uxTVKMlqaPQilrAM7Fr6cQdZKHwBJ-GjQo",
         "weapon_name": "weapon_sg556",
         "paint": "0",
         "image": "https://raw.githubusercontent.com/Nereziel/cs2-WeaponPaints/main/website/img/skins/weapon_sg556.png",
@@ -96,7 +96,7 @@
         "weapon_type": "csgo_inventory_weapon_category_rifles"
     },
     {
-        "weapon_defindex": "9",
+            "image": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5T441rsfhr9kYDl7h1c4_24bZtpMvmFC3Vw_x5s-BtShawhxwptgKXn4vGLSLANkI-XMN2Qu4OsEG6lYK2M-OwtgPf2IMRzXio3yMY7yhptbxRAKIkq_bVhhaBb-OYO4AFQA",
         "weapon_name": "weapon_awp",
         "paint": "0",
         "image": "https://raw.githubusercontent.com/Nereziel/cs2-WeaponPaints/main/website/img/skins/weapon_awp.png",
@@ -104,7 +104,7 @@
         "weapon_type": "csgo_inventory_weapon_category_rifles"
     },
     {
-        "weapon_defindex": "11",
+            "image": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu4vx603vRA_Olpfu-TVJ7uK9V6xsLvSEHGaA_u13ve5WSDu2jCIrujqNjsH_InuUaQQmDJd2Fu4NshO7kIGyYeu24Affg98UxCX_iXhJ5i465bwHT-N7rXbV3WG0",
         "weapon_name": "weapon_g3sg1",
         "paint": "0",
         "image": "https://raw.githubusercontent.com/Nereziel/cs2-WeaponPaints/main/website/img/skins/weapon_g3sg1.png",
@@ -112,7 +112,7 @@
         "weapon_type": "csgo_inventory_weapon_category_rifles"
     },
     {
-        "weapon_defindex": "38",
+            "image": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu4r7_lb1QgTykpPf-i5U-fe9V6liNP-BDX6TzetJsuB6RiqMlxEmsDa6lob-KT-JaQMpDpFzFOdY4EO8lIDnMLjr5ALZjN1Dnyj7iyhAvXo55ucKWadx87qX0V_LSR8vSA",
         "weapon_name": "weapon_scar20",
         "paint": "0",
         "image": "https://raw.githubusercontent.com/Nereziel/cs2-WeaponPaints/main/website/img/skins/weapon_scar20.png",
@@ -120,7 +120,7 @@
         "weapon_type": "csgo_inventory_weapon_category_rifles"
     },
     {
-        "weapon_defindex": "40",
+            "image": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Tk71ruQBH4jYLf-i5U-fe9V6NhL-aWMXSAxO1_se1gXD2MlB80py-EmZvGJjnCO1hPUschA64UshiwkdWxNOPltQXWjtoRyXn5jCJO7yxr5OgFAPV3_q2Chl2SZ7Nr6Y5DeqjMXToVHw",
         "weapon_name": "weapon_ssg08",
         "paint": "0",
         "image": "https://raw.githubusercontent.com/Nereziel/cs2-WeaponPaints/main/website/img/skins/weapon_ssg08.png",
@@ -128,7 +128,7 @@
         "weapon_type": "csgo_inventory_weapon_category_rifles"
     },
     {
-        "weapon_defindex": "27",
+            "image": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Tg_13jRBnOlo_k7yNk6P6hfqF-H_KfAWiUyeFjvuVWRzC3hxwYsTGEmYTGJjnCO1hPUschA64UtBO_kIKyMurl51aLi0Qn32o2HxB7Xw_sO8DUKMkqKaC3gyQYrNo545Deqi-yLZQqA",
         "weapon_name": "weapon_mag7",
         "paint": "0",
         "image": "https://raw.githubusercontent.com/Nereziel/cs2-WeaponPaints/main/website/img/skins/weapon_mag7.png",
@@ -136,7 +136,7 @@
         "weapon_type": "csgo_inventory_weapon_category_heavy"
     },
     {
-        "weapon_defindex": "35",
+            "image": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Tg_13jRBnOnITv9idV6fOgb5tqLP-FC3Svzv5zouB9Ria9xE0YtTGKiI71HiPCP0BpFJolFO5bsBbtwIXhNbnq4g2IiY4XyCuvji4duns55O4DAKd2_6HfjF3fcepquvTkNVo",
         "weapon_name": "weapon_nova",
         "paint": "0",
         "image": "https://raw.githubusercontent.com/Nereziel/cs2-WeaponPaints/main/website/img/skins/weapon_nova.png",
@@ -435,7 +435,7 @@
         "weapon_defindex": "5027",
         "weapon_name": "studded_bloodhound_gloves",
         "paint": "0",
-        "image": "https://static.wikia.nocookie.net/cswikia/images/f/f6/Inventory_icon_studded_bloodhound_gloves.png",
+        "image": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Tg_13jRBnOnJrv8iZT4OegbJtqLP-FC3Svzv5vVhQDy9kSIlvzyGkbDqKCfRO0RPVssnHaMUsES-k9HjNrixsgbd3YIRni7-inlO5i5t6-pRAqIs_aOFjg_JZbU5sI5Deqh-Veq-pA",
         "paint_name": "Bloodhound gloves",
         "weapon_type": "sfui_invpanel_filter_gloves"
     },
@@ -443,7 +443,7 @@
         "weapon_defindex": "5030",
         "weapon_name": "sporty_gloves",
         "paint": "0",
-        "image": "https://static.wikia.nocookie.net/cswikia/images/6/65/Inventory_icon_sporty_gloves.png",
+        "image": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Tk5UvzWCL2kpn2-DFk6P6hfqFSM-CcHHOvw-t3tPZmXSKMkRQmvjKLnpzGMT7VLlp1Zc4pEr9OrBWxxofvNOLitQKPid5Hznr-3C9JvHtu4uxTVKMlqaPQilrAM7Fr6cQdZKHwBJ-GjQo",
         "paint_name": "Sport gloves",
         "weapon_type": "sfui_invpanel_filter_gloves"
     },
@@ -451,7 +451,7 @@
         "weapon_defindex": "5031",
         "weapon_name": "slick_gloves",
         "paint": "0",
-        "image": "https://static.wikia.nocookie.net/cswikia/images/6/67/Inventory_icon_slick_gloves.png",
+        "image": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5T441rsfhr9kYDl7h1c4_24bZtpMvmFC3Vw_x5s-BtShawhxwptgKXn4vGLSLANkI-XMN2Qu4OsEG6lYK2M-OwtgPf2IMRzXio3yMY7yhptbxRAKIkq_bVhhaBb-OYO4AFQA",
         "paint_name": "Driver gloves",
         "weapon_type": "sfui_invpanel_filter_gloves"
     },
@@ -459,7 +459,7 @@
         "weapon_defindex": "5032",
         "weapon_name": "leather_handwraps",
         "paint": "0",
-        "image": "https://static.wikia.nocookie.net/cswikia/images/0/06/Inventory_icon_leather_handwraps.png",
+        "image": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu4vx603vRA_Olpfu-TVJ7uK9V6xsLvSEHGaA_u13ve5WSDu2jCIrujqNjsH_InuUaQQmDJd2Fu4NshO7kIGyYeu24Affg98UxCX_iXhJ5i465bwHT-N7rXbV3WG0",
         "paint_name": "Hand wraps",
         "weapon_type": "sfui_invpanel_filter_gloves"
     },
@@ -467,7 +467,7 @@
         "weapon_defindex": "5033",
         "weapon_name": "motorcycle_gloves",
         "paint": "0",
-        "image": "https://static.wikia.nocookie.net/cswikia/images/5/53/Inventory_icon_motorcycle_gloves.png",
+        "image": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu4r7_lb1QgTykpPf-i5U-fe9V6liNP-BDX6TzetJsuB6RiqMlxEmsDa6lob-KT-JaQMpDpFzFOdY4EO8lIDnMLjr5ALZjN1Dnyj7iyhAvXo55ucKWadx87qX0V_LSR8vSA",
         "paint_name": "Motorcycle gloves",
         "weapon_type": "sfui_invpanel_filter_gloves"
     },
@@ -475,7 +475,7 @@
         "weapon_defindex": "5034",
         "weapon_name": "specialist_gloves",
         "paint": "0",
-        "image": "https://static.wikia.nocookie.net/cswikia/images/b/b1/Inventory_icon_specialist_gloves.png",
+        "image": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Tk71ruQBH4jYLf-i5U-fe9V6NhL-aWMXSAxO1_se1gXD2MlB80py-EmZvGJjnCO1hPUschA64UshiwkdWxNOPltQXWjtoRyXn5jCJO7yxr5OgFAPV3_q2Chl2SZ7Nr6Y5DeqjMXToVHw",
         "paint_name": "Specialist gloves",
         "weapon_type": "sfui_invpanel_filter_gloves"
     },
@@ -483,7 +483,7 @@
         "weapon_defindex": "5035",
         "weapon_name": "studded_hydra_gloves",
         "paint": "0",
-        "image": "https://static.wikia.nocookie.net/cswikia/images/f/f6/Inventory_icon_studded_bloodhound_gloves.png",
+        "image": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Tg_13jRBnOlo_k7yNk6P6hfqF-H_KfAWiUyeFjvuVWRzC3hxwYsTGEmYTGJjnCO1hPUschA64UtBO_kIKyMurl51aLi0Qn32o2HxB7Xw_sO8DUKMkqKaC3gyQYrNo545Deqi-yLZQqA",
         "paint_name": "Hydra gloves",
         "weapon_type": "sfui_invpanel_filter_gloves"
     },
@@ -491,7 +491,7 @@
         "weapon_defindex": "4725",
         "weapon_name": "studded_brokenfang_gloves",
         "paint": "0",
-        "image": "https://static.wikia.nocookie.net/cswikia/images/f/f6/Inventory_icon_studded_bloodhound_gloves.png",
+        "image": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Tg_13jRBnOnITv9idV6fOgb5tqLP-FC3Svzv5zouB9Ria9xE0YtTGKiI71HiPCP0BpFJolFO5bsBbtwIXhNbnq4g2IiY4XyCuvji4duns55O4DAKd2_6HfjF3fcepquvTkNVo",
         "paint_name": "Hydra gloves",
         "weapon_type": "sfui_invpanel_filter_gloves"
     },
