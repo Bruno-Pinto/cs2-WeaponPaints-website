@@ -246,3 +246,212 @@ li {
 .text-roboto {
     font-family: 'Roboto Condensed', sans-serif;
 }
+
+.skin-editor-shell {
+    background: radial-gradient(circle at 20% 20%, rgba(118, 49, 95, 0.75), rgba(35, 8, 29, 0.95) 45%, #09020a 100%);
+}
+
+.skin-editor-stage {
+    width: 100%;
+    min-height: 100dvh;
+    display: flex;
+    position: relative;
+}
+
+.skin-editor-tag {
+    position: absolute;
+    top: 18px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 20px;
+    font-weight: 700;
+    color: #d9b4e2;
+    background: rgba(255, 255, 255, 0.14);
+    padding: 4px 10px;
+    border-radius: 6px;
+    z-index: 4;
+}
+
+.skin-editor-sidebar {
+    width: 380px;
+    max-width: 100%;
+    padding: 20px 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    background: linear-gradient(180deg, rgba(35, 8, 29, 0.2), rgba(35, 8, 29, 0.5));
+    border-right: 1px solid rgba(255, 255, 255, 0.12);
+    z-index: 2;
+    animation: skinEditorSlideIn 260ms ease-out;
+}
+
+.skin-editor-title-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.skin-editor-back {
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-size: 26px;
+    line-height: 1;
+}
+
+.skin-editor-input-group {
+    display: grid;
+    gap: 6px;
+}
+
+.skin-editor-input-group .form-control,
+.skin-editor-input-group .form-select {
+    background: transparent !important;
+    border: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.35);
+    color: rgba(255, 255, 255, 0.95);
+    border-radius: 0;
+    padding-left: 0;
+}
+
+.skin-editor-input-group .form-control:disabled {
+    opacity: 0.35;
+}
+
+.skin-editor-hidden-inputs {
+    display: none;
+}
+
+.skin-editor-inline {
+    display: flex;
+    gap: 14px;
+    align-items: flex-end;
+}
+
+.skin-editor-inline .skin-editor-input-group {
+    flex: 1;
+}
+
+.skin-editor-stickers {
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 8px;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.16);
+}
+
+.skin-editor-chip-row {
+    display: flex;
+    gap: 6px;
+}
+
+.skin-editor-chip {
+    width: 34px;
+    height: 30px;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+    font-weight: 700;
+    border-radius: 4px;
+}
+
+.skin-editor-chip.is-active {
+    border-color: #ffffff;
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.25);
+}
+
+.skin-editor-chip.is-filled {
+    background: rgba(210, 126, 255, 0.22);
+}
+
+.skin-editor-advanced {
+    display: none;
+}
+
+#stickerEditorHost.advanced-open .skin-editor-advanced {
+    display: block;
+}
+
+.skin-editor-actions {
+    margin-top: auto;
+    display: grid;
+    gap: 10px;
+    grid-template-columns: 1fr 1fr 1fr;
+}
+
+.skin-editor-actions .btn {
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.45);
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.skin-editor-preview {
+    position: relative;
+    flex: 1;
+    display: grid;
+    place-items: center;
+    padding: 70px 22px 22px;
+    animation: skinEditorFadeIn 340ms ease-out;
+}
+
+.skin-editor-preview-img {
+    position: absolute;
+    max-width: 54%;
+    max-height: 170px;
+    object-fit: contain;
+    opacity: 0.5;
+}
+
+.skin-editor-preview-3d {
+    width: min(920px, 95%);
+}
+
+.skin-editor-preview-3d #editor3dCanvas {
+    height: 420px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 10px;
+    background: transparent;
+}
+
+@media (max-width: 960px) {
+    .skin-editor-stage {
+        flex-direction: column;
+    }
+
+    .skin-editor-sidebar {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .skin-editor-preview {
+        padding-top: 30px;
+    }
+
+    .skin-editor-preview-3d #editor3dCanvas {
+        height: 300px;
+    }
+}
+
+@keyframes skinEditorSlideIn {
+    from {
+        transform: translateX(-18px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes skinEditorFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

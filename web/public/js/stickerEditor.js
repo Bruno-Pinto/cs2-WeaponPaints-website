@@ -15,6 +15,7 @@
             this.onChange = options.onChange;
             this.stickers = [];
             this.bound = false;
+            this.activeSlot = 0;
         }
 
         bindEvents() {
@@ -26,10 +27,26 @@
             const applyBtn = this.container.querySelector('[data-sticker-apply]');
             const removeBtn = this.container.querySelector('[data-sticker-remove]');
             const resetBtn = this.container.querySelector('[data-sticker-reset]');
+            const chips = this.container.querySelectorAll('[data-sticker-chip]');
+            const advancedToggle = this.container.querySelector('[data-sticker-advanced-toggle]');
 
             if (slotSelect) {
                 slotSelect.addEventListener('change', () => {
-                    this.renderFormForSlot(Number(slotSelect.value || 0));
+                    this.setActiveSlot(Number(slotSelect.value || 0));
+                });
+            }
+
+            if (chips && chips.length) {
+                chips.forEach((chip) => {
+                    chip.addEventListener('click', () => {
+                        this.setActiveSlot(Number(chip.dataset.stickerChip || 0));
+                    });
+                });
+            }
+
+            if (advancedToggle) {
+                advancedToggle.addEventListener('click', () => {
+                    this.container.classList.toggle('advanced-open');
                 });
             }
 
@@ -54,16 +71,25 @@
             this.bound = true;
         }
 
+        setActiveSlot(slot) {
+            this.activeSlot = Math.max(0, Math.min(SLOT_COUNT - 1, slot));
+            this.renderFormForSlot(this.activeSlot);
+            this.renderChips();
+        }
+
         mount(stickers) {
             this.bindEvents();
             this.stickers = normalizeState(stickers);
-            this.renderFormForSlot(0);
+            this.setActiveSlot(0);
+            this.renderChips();
             this.renderSummary();
             this.emitChange();
         }
 
         destroy() {
             this.stickers = [];
+            this.activeSlot = 0;
+            this.renderChips();
             this.renderSummary();
         }
 
@@ -72,8 +98,7 @@
         }
 
         getActiveSlot() {
-            const slotSelect = this.container.querySelector('[data-sticker-slot]');
-            return Number(slotSelect ? slotSelect.value : 0);
+            return this.activeSlot;
         }
 
         getInput(name) {
@@ -103,6 +128,7 @@
             const nextStickers = this.stickers.filter((entry) => entry.slot !== values.slot);
             nextStickers.push(values);
             this.stickers = normalizeState(nextStickers);
+            this.renderChips();
             this.renderSummary();
             this.renderFormForSlot(values.slot);
             this.emitChange();
@@ -111,6 +137,7 @@
         removeCurrentSlot() {
             const slot = this.getActiveSlot();
             this.stickers = this.stickers.filter((entry) => entry.slot !== slot);
+            this.renderChips();
             this.renderSummary();
             this.renderFormForSlot(slot);
             this.emitChange();
@@ -118,9 +145,25 @@
 
         resetAll() {
             this.stickers = [];
+            this.renderChips();
             this.renderSummary();
             this.renderFormForSlot(this.getActiveSlot());
             this.emitChange();
+        }
+
+        renderChips() {
+            const chips = this.container.querySelectorAll('[data-sticker-chip]');
+            if (!chips || !chips.length) {
+                return;
+            }
+
+            chips.forEach((chip) => {
+                const slot = Number(chip.dataset.stickerChip || 0);
+                const sticker = this.stickers.find((entry) => entry.slot === slot);
+                chip.classList.toggle('is-active', slot === this.activeSlot);
+                chip.classList.toggle('is-filled', Boolean(sticker));
+                chip.innerHTML = sticker ? '&#10003;' : '+';
+            });
         }
 
         renderFormForSlot(slot) {

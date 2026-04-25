@@ -16,103 +16,112 @@
 
     <!-- Modal -->
     <div class="modal fade" id="patternFloat" tabindex="-1" aria-labelledby="patternFloatLabel" aria-hidden="true">
-        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
-            <div class="modal-content bg-nav text-light border-dark">
-                <div class="modal-header border-dark">
-                    <div>
-                        <h5 class="modal-title" id="patternFloatLabel">New Skin Editor</h5>
-                        <small class="text-secondary"><span id="modalWeapon">Weapon</span> | <span id="modalPaint">Paint</span></small>
-                    </div>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="row g-3">
-                        <div class="col-lg-7">
-                            <div class="p-2 rounded border border-secondary-subtle bg-color">
-                                <img id="modalImg" class="mx-auto d-block mb-2" src="https://raw.githubusercontent.com/ByMykel/CSGO-API/efe25483a04a03414dea9c61d4b0e958a373cdfd/public/images/econ/default_generated/weapon_knife_gut_aa_fade_light.png" style="max-height: 110px; object-fit: contain;">
-                                <div id="editor3dHost" class="w-100" style="display: none;">
-                                    <div id="editor3dCanvas" style="height: 340px; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px;"></div>
-                                </div>
+        <div class="modal-dialog modal-fullscreen">
+            <div class="modal-content skin-editor-shell border-0 text-light">
+                <div class="modal-body p-0 skin-editor-stage">
+                    <div class="skin-editor-tag"><span id="modalWeapon">Weapon</span> | <span id="modalPaint">Paint</span></div>
+
+                    <div class="skin-editor-sidebar">
+                        <div class="skin-editor-title-row">
+                            <button type="button" class="skin-editor-back" data-bs-dismiss="modal" aria-label="Close">&lt;</button>
+                            <h5 class="m-0" id="patternFloatLabel">Customize</h5>
+                        </div>
+
+                        <div class="skin-editor-input-group">
+                            <label for="wearPreset" class="form-label m-0">Wear</label>
+                            <select id="wearPreset" class="form-select form-select-sm">
+                                <option value="0.000001">Factory New</option>
+                                <option value="0.07">Minimal Wear</option>
+                                <option value="0.15">Field-Tested</option>
+                                <option value="0.38">Well-Worn</option>
+                                <option value="0.45">Battle-Scarred</option>
+                                <option value="custom">Custom</option>
+                            </select>
+                            <div class="skin-editor-hidden-inputs">
+                                <input type="range" id="floatSlider" class="slider" min="0" max="1" step="0.000001" value="0.000001">
+                                <input type="number" id="float" class="form-control" min="0" max="1" step="0.000001" value="0.000001">
+                            </div>
+                            <p id="floatText" class="m-0 text-secondary"><%= lang.modal.patternButtons[0].longName %></p>
+                        </div>
+
+                        <div class="skin-editor-input-group">
+                            <label class="form-label m-0" for="pattern"><%= lang.modal.pattern %></label>
+                            <input type="number" id="pattern" class="form-control" placeholder="1 - 1000" value="0">
+                        </div>
+
+                        <div class="skin-editor-input-group">
+                            <label class="form-label m-0" for="nameTag">Name tag</label>
+                            <input type="text" id="nameTag" class="form-control" placeholder="Name tag" disabled>
+                        </div>
+
+                        <div class="skin-editor-inline">
+                            <div class="skin-editor-input-group mb-0">
+                                <label class="form-label m-0" for="stattrakEnabled">Stattrak</label>
+                                <input type="checkbox" id="stattrakEnabled" class="form-check-input" disabled>
+                            </div>
+                            <div class="skin-editor-input-group mb-0">
+                                <label class="form-label m-0" for="stattrakKills">Kills</label>
+                                <input type="number" id="stattrakKills" class="form-control" placeholder="/" disabled>
                             </div>
                         </div>
-                        <div class="col-lg-5">
-                            <div class="p-2 rounded border border-secondary-subtle bg-color">
-                                <h6 class="mb-2">Finish Controls</h6>
-                                <div class="form-outline mb-2">
-                                    <label class="form-label m-0" for="float"><%= lang.modal.float %></label>
-                                    <input type="range" id="floatSlider" class="slider" min="0" max="1" step="0.000001" value="0.000001" data-bs-theme="dark">
-                                    <input type="number" id="float" class="form-control" min="0" max="1" step="0.000001" value="0.000001" data-bs-theme="dark">
-                                    <p id="floatText" class="text-center m-0"><%= lang.modal.patternButtons[0].longName %></p>
-                                </div>
-                                <div class="btn-group w-100 mb-2">
-                                    <button onclick="setFloat(0.0001)" class="btn btn-primary floatButton"><%= lang.modal.patternButtons[0].shortName %></button>
-                                    <button onclick="setFloat(0.07)" class="btn btn-primary floatButton"><%= lang.modal.patternButtons[1].shortName %></button>
-                                    <button onclick="setFloat(0.15)" class="btn btn-primary floatButton"><%= lang.modal.patternButtons[2].shortName %></button>
-                                    <button onclick="setFloat(0.38)" class="btn btn-primary floatButton"><%= lang.modal.patternButtons[3].shortName %></button>
-                                    <button onclick="setFloat(0.45)" class="btn btn-primary floatButton"><%= lang.modal.patternButtons[4].shortName %></button>
-                                </div>
-                                <div class="form-outline mb-2">
-                                    <label class="form-label m-0" for="pattern"><%= lang.modal.pattern %></label>
-                                    <input type="number" id="pattern" class="form-control" placeholder="Pattern" value="0" data-bs-theme="dark">
-                                </div>
+
+                        <div id="stickerEditorHost" class="skin-editor-stickers" style="display: none;">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6 class="m-0">Stickers</h6>
+                                <small class="text-secondary">Up to 5</small>
+                            </div>
+                            <div class="skin-editor-chip-row" data-sticker-chip-row>
+                                <button type="button" class="skin-editor-chip" data-sticker-chip="0">+</button>
+                                <button type="button" class="skin-editor-chip" data-sticker-chip="1">+</button>
+                                <button type="button" class="skin-editor-chip" data-sticker-chip="2">+</button>
+                                <button type="button" class="skin-editor-chip" data-sticker-chip="3">+</button>
+                                <button type="button" class="skin-editor-chip" data-sticker-chip="4">+</button>
                             </div>
 
-                            <div id="stickerEditorHost" class="mt-3" style="display: none;">
-                                <div class="border rounded p-2 bg-color" style="border-color: rgba(255,255,255,0.18) !important;">
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <h6 class="m-0">Sticker Editor</h6>
-                                        <small class="text-secondary">5 slots</small>
+                            <div class="d-flex gap-2 mt-2">
+                                <button type="button" class="btn btn-sm btn-outline-light" data-sticker-advanced-toggle>Advanced</button>
+                                <button type="button" class="btn btn-sm btn-primary" data-sticker-apply>Apply</button>
+                                <button type="button" class="btn btn-sm btn-outline-light" data-sticker-remove>Remove</button>
+                                <button type="button" class="btn btn-sm btn-outline-warning" data-sticker-reset>Reset</button>
+                            </div>
+                            <div class="skin-editor-advanced mt-2" data-sticker-advanced>
+                                <div class="row g-2">
+                                    <div class="col-4 d-none">
+                                        <select class="form-select form-select-sm" data-sticker-slot>
+                                            <option value="0">Slot 1</option>
+                                            <option value="1">Slot 2</option>
+                                            <option value="2">Slot 3</option>
+                                            <option value="3">Slot 4</option>
+                                            <option value="4">Slot 5</option>
+                                        </select>
                                     </div>
-                                    <div class="row g-2">
-                                        <div class="col-4">
-                                            <label class="form-label m-0"><small>Slot</small></label>
-                                            <select class="form-select form-select-sm" data-sticker-slot>
-                                                <option value="0">Slot 1</option>
-                                                <option value="1">Slot 2</option>
-                                                <option value="2">Slot 3</option>
-                                                <option value="3">Slot 4</option>
-                                                <option value="4">Slot 5</option>
-                                            </select>
-                                        </div>
-                                        <div class="col-8">
-                                            <label class="form-label m-0"><small>Sticker ID</small></label>
-                                            <input class="form-control form-control-sm" type="text" data-sticker-input="id" placeholder="sticker_name">
-                                        </div>
-                                        <div class="col-4">
-                                            <label class="form-label m-0"><small>Scale</small></label>
-                                            <input class="form-control form-control-sm" type="number" step="0.01" min="0.05" max="4" data-sticker-input="scale" value="1">
-                                        </div>
-                                        <div class="col-4">
-                                            <label class="form-label m-0"><small>Rotation</small></label>
-                                            <input class="form-control form-control-sm" type="number" step="1" min="-180" max="180" data-sticker-input="rotation" value="0">
-                                        </div>
-                                        <div class="col-4">
-                                            <label class="form-label m-0"><small>Wear</small></label>
-                                            <input class="form-control form-control-sm" type="number" step="0.01" min="0" max="1" data-sticker-input="wear" value="0">
-                                        </div>
-                                        <div class="col-6">
-                                            <label class="form-label m-0"><small>Pos X</small></label>
-                                            <input class="form-control form-control-sm" type="number" step="0.01" min="-2" max="2" data-sticker-input="x" value="0">
-                                        </div>
-                                        <div class="col-6">
-                                            <label class="form-label m-0"><small>Pos Y</small></label>
-                                            <input class="form-control form-control-sm" type="number" step="0.01" min="-2" max="2" data-sticker-input="y" value="0">
-                                        </div>
+                                    <div class="col-12">
+                                        <input class="form-control form-control-sm" type="text" data-sticker-input="id" placeholder="Sticker ID">
                                     </div>
-                                    <div class="d-flex gap-2 mt-2">
-                                        <button type="button" class="btn btn-sm btn-primary" data-sticker-apply>Apply Slot</button>
-                                        <button type="button" class="btn btn-sm btn-outline-light" data-sticker-remove>Remove Slot</button>
-                                        <button type="button" class="btn btn-sm btn-outline-warning" data-sticker-reset>Reset All</button>
-                                    </div>
-                                    <div class="mt-2" data-sticker-summary></div>
+                                    <div class="col-4"><input class="form-control form-control-sm" type="number" step="0.01" min="0.05" max="4" data-sticker-input="scale" value="1" placeholder="Scale"></div>
+                                    <div class="col-4"><input class="form-control form-control-sm" type="number" step="1" min="-180" max="180" data-sticker-input="rotation" value="0" placeholder="Rot"></div>
+                                    <div class="col-4"><input class="form-control form-control-sm" type="number" step="0.01" min="0" max="1" data-sticker-input="wear" value="0" placeholder="Wear"></div>
+                                    <div class="col-6"><input class="form-control form-control-sm" type="number" step="0.01" min="-2" max="2" data-sticker-input="x" value="0" placeholder="X"></div>
+                                    <div class="col-6"><input class="form-control form-control-sm" type="number" step="0.01" min="-2" max="2" data-sticker-input="y" value="0" placeholder="Y"></div>
                                 </div>
                             </div>
+                            <div class="mt-2" data-sticker-summary></div>
+                        </div>
+
+                        <div class="skin-editor-actions">
+                            <button type="button" class="btn btn-outline-light" id="applyTButton" onclick="changeParams('t')">Apply T</button>
+                            <button type="button" class="btn btn-outline-light" id="applyCTButton" onclick="changeParams('ct')">Apply CT</button>
+                            <button type="button" class="btn btn-outline-warning" id="applyBothButton" onclick="changeParams('both')">Apply Both</button>
+                            <button type="button" class="d-none" id="modalButton"></button>
                         </div>
                     </div>
-                </div>
-                <div class="modal-footer border-dark d-flex justify-content-between">
-                    <small class="text-secondary">Preview updates in real time</small>
-                    <button type="button" class="btn btn-primary" onclick="changeParams()" id="modalButton"><%= lang.change %></button>
+
+                    <div class="skin-editor-preview">
+                        <img id="modalImg" class="skin-editor-preview-img" src="https://raw.githubusercontent.com/ByMykel/CSGO-API/efe25483a04a03414dea9c61d4b0e958a373cdfd/public/images/econ/default_generated/weapon_knife_gut_aa_fade_light.png" alt="Preview">
+                        <div id="editor3dHost" class="skin-editor-preview-3d" style="display: none;">
+                            <div id="editor3dCanvas"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

@@ -258,6 +258,7 @@ function syncFloatInputs(value) {
     const floatSlider = document.getElementById('floatSlider');
     const floatInput = document.getElementById('float');
     const floatText = document.getElementById('floatText');
+    const wearPreset = document.getElementById('wearPreset');
     const nextValue = value ?? '0.000001';
 
     if (floatSlider) {
@@ -271,6 +272,25 @@ function syncFloatInputs(value) {
     if (floatText) {
         floatText.textContent = getFloatLabel(nextValue);
     }
+
+    if (wearPreset) {
+        const parsedValue = Number(nextValue)
+        const presetValues = ['0.000001', '0.07', '0.15', '0.38', '0.45']
+        const match = presetValues.find((candidate) => Math.abs(Number(candidate) - parsedValue) < 0.000001)
+        wearPreset.value = match || 'custom'
+    }
+
+    toggleWearCustomVisibility()
+}
+
+function toggleWearCustomVisibility() {
+    const wearPreset = document.getElementById('wearPreset')
+    const customWrapper = document.querySelector('.skin-editor-hidden-inputs')
+    if (!wearPreset || !customWrapper) {
+        return
+    }
+
+    customWrapper.style.display = wearPreset.value === 'custom' ? 'grid' : 'none'
 }
 
 window.setFloat = (value) => {
@@ -280,6 +300,9 @@ window.setFloat = (value) => {
 function resetEditModal() {
     const form = document.getElementById('patternFloat');
     const modalButton = document.getElementById('modalButton');
+    const applyTButton = document.getElementById('applyTButton');
+    const applyCTButton = document.getElementById('applyCTButton');
+    const applyBothButton = document.getElementById('applyBothButton');
 
     currentWeaponId = '';
     currentPaintId = '';
@@ -292,6 +315,15 @@ function resetEditModal() {
 
     if (modalButton && typeof langObject !== 'undefined') {
         modalButton.innerHTML = langObject.change;
+    }
+    if (applyTButton) {
+        applyTButton.innerHTML = 'Apply T'
+    }
+    if (applyCTButton) {
+        applyCTButton.innerHTML = 'Apply CT'
+    }
+    if (applyBothButton) {
+        applyBothButton.innerHTML = 'Apply Both'
     }
 
     const editor3dHost = document.getElementById('editor3dHost')
@@ -580,14 +612,21 @@ const editModal = (img, weaponName, paintName, weaponId, paintId) => {
     console.log(img, weaponName, paintName, currentWeaponId, currentPaintId)
 }
 
-const changeParams = () => {
+const changeParams = (teamOverride = null) => {
     let steamid = user.id
     let weaponid = currentWeaponId
     let paintid = currentPaintId
     let float = document.getElementById("float").value || '0.000001'
     let pattern = document.getElementById("pattern").value || '1'
-    const team = window.selectedTeam || 'both'
+    const team = teamOverride || window.selectedTeam || 'both'
     const editor3d = buildEditor3DPayload(weaponid, paintid, float, pattern)
+
+    const applyButtons = {
+        t: document.getElementById('applyTButton'),
+        ct: document.getElementById('applyCTButton'),
+        both: document.getElementById('applyBothButton')
+    }
+    const activeButton = applyButtons[team]
 
     window.pendingParamUpdate = {
         weaponid,
@@ -599,12 +638,13 @@ const changeParams = () => {
         stickers: editor3d ? editor3d.stickers : []
     }
 
-    document.getElementById('modalButton').innerHTML = 
-        `
+    if (activeButton) {
+        activeButton.innerHTML = `
             <div class="spinner-border spinner-border-sm" role="status">
                 <span class="visually-hidden">Loading...</span>
             </div>
         `
+    }
 
     socket.emit('change-params', {
         steamid: steamid,
@@ -630,7 +670,18 @@ socket.on('params-changed', (serverPayload = {}) => {
 
     applyCurrentParamsLocally(normalizedPayload)
     window.pendingParamUpdate = null
-    document.getElementById('modalButton').innerHTML = langObject.change
+    const applyTButton = document.getElementById('applyTButton')
+    const applyCTButton = document.getElementById('applyCTButton')
+    const applyBothButton = document.getElementById('applyBothButton')
+    if (applyTButton) {
+        applyTButton.innerHTML = 'Apply T'
+    }
+    if (applyCTButton) {
+        applyCTButton.innerHTML = 'Apply CT'
+    }
+    if (applyBothButton) {
+        applyBothButton.innerHTML = 'Apply Both'
+    }
     const modalElement = document.getElementById('patternFloat')
     if (modalElement && window.bootstrap && window.bootstrap.Modal) {
         const modal = window.bootstrap.Modal.getOrCreateInstance(modalElement)
@@ -684,6 +735,28 @@ if (floatSlider && floatInput) {
     }
 
     syncFloatInputs(floatInput.value || floatSlider.value)
+}
+
+const wearPreset = document.getElementById('wearPreset')
+if (wearPreset) {
+    wearPreset.addEventListener('change', (event) => {
+        const selectedValue = event.target.value
+        if (selectedValue && selectedValue !== 'custom') {
+            syncFloatInputs(selectedValue)
+        } else {
+            toggleWearCustomVisibility()
+        }
+
+        mountOrUpdate3DEditor({
+            weaponId: currentWeaponId,
+            paintId: currentPaintId,
+            wear: document.getElementById('float')?.value || '0.000001',
+            seed: document.getElementById('pattern')?.value || '1',
+            stickers: getActiveStickers()
+        })
+    })
+
+    toggleWearCustomVisibility()
 }
 
 const editModalElement = document.getElementById('patternFloat')
