@@ -16,87 +16,102 @@
 
     <!-- Modal -->
     <div class="modal fade" id="patternFloat" tabindex="-1" aria-labelledby="patternFloatLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content" style="background-color: transparent !important;">
-                <div class="modal-header bg-nav text-light border-dark">
-                    <h5 class="modal-title" id="patternFloatLabel"><%= lang.modal.title %></h5>
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content bg-nav text-light border-dark">
+                <div class="modal-header border-dark">
+                    <div>
+                        <h5 class="modal-title" id="patternFloatLabel">New Skin Editor</h5>
+                        <small class="text-secondary"><span id="modalWeapon">Weapon</span> | <span id="modalPaint">Paint</span></small>
+                    </div>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body bg-color d-flex flex-column text-light">
-                    <img id="modalImg" class="mx-auto" src="https://raw.githubusercontent.com/ByMykel/CSGO-API/efe25483a04a03414dea9c61d4b0e958a373cdfd/public/images/econ/default_generated/weapon_knife_gut_aa_fade_light.png" width="40%">
-                    <div id="editor3dHost" class="mx-auto mb-2" style="display: none; width: 100%; max-width: 520px;">
-                        <div id="editor3dCanvas" style="height: 260px; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px;"></div>
-                    </div>
-                    <h5 class="mx-auto"><span id="modalWeapon">Gut knife</span> | <span id="modalPaint">Fade</span></h5>
-                    <div class="form-outline mx-auto mb-2">
-                        <label class="form-label m-0" for="float"><%= lang.modal.float %></label>
-                        <input type="range" id="floatSlider" class="slider" min="0" max="1" step="0.000001" value="0.000001" data-bs-theme="dark">
-                        <input type="number" id="float" class="form-control" min="0" max="1" step="0.000001" value="0.000001" data-bs-theme="dark">
-                        <p id="floatText" class="text-center m-0"><%= lang.modal.patternButtons[0].longName %></p>
-                    </div>
-                    <div class="btn-group mx-auto mb-2">
-                        <button onclick="setFloat(0.0001)" class="btn btn-primary floatButton"><%= lang.modal.patternButtons[0].shortName %></button>
-                        <button onclick="setFloat(0.07)" class="btn btn-primary floatButton"><%= lang.modal.patternButtons[1].shortName %></button>
-                        <button onclick="setFloat(0.15)" class="btn btn-primary floatButton"><%= lang.modal.patternButtons[2].shortName %></button>
-                        <button onclick="setFloat(0.38)" class="btn btn-primary floatButton"><%= lang.modal.patternButtons[3].shortName %></button>
-                        <button onclick="setFloat(0.45)" class="btn btn-primary floatButton"><%= lang.modal.patternButtons[4].shortName %></button>
-                    </div>
-                    <div class="form-outline mx-auto mt-3">
-                        <label class="form-label m-0" for="pattern"><%= lang.modal.pattern %></label>
-                        <input type="number" id="pattern" class="form-control" placeholder="Pattern" value="0" data-bs-theme="dark">
-                    </div>
-                    <div id="stickerEditorHost" class="mt-3" style="display: none;">
-                        <div class="border rounded p-2" style="border-color: rgba(255,255,255,0.18) !important;">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <h6 class="m-0">Stickers</h6>
-                                <small class="text-secondary">Up to 5 slots</small>
-                            </div>
-                            <div class="row g-2">
-                                <div class="col-4">
-                                    <label class="form-label m-0"><small>Slot</small></label>
-                                    <select class="form-select form-select-sm" data-sticker-slot>
-                                        <option value="0">Slot 1</option>
-                                        <option value="1">Slot 2</option>
-                                        <option value="2">Slot 3</option>
-                                        <option value="3">Slot 4</option>
-                                        <option value="4">Slot 5</option>
-                                    </select>
-                                </div>
-                                <div class="col-8">
-                                    <label class="form-label m-0"><small>Sticker ID</small></label>
-                                    <input class="form-control form-control-sm" type="text" data-sticker-input="id" placeholder="sticker_name">
-                                </div>
-                                <div class="col-4">
-                                    <label class="form-label m-0"><small>Scale</small></label>
-                                    <input class="form-control form-control-sm" type="number" step="0.01" min="0.05" max="4" data-sticker-input="scale" value="1">
-                                </div>
-                                <div class="col-4">
-                                    <label class="form-label m-0"><small>Rotation</small></label>
-                                    <input class="form-control form-control-sm" type="number" step="1" min="-180" max="180" data-sticker-input="rotation" value="0">
-                                </div>
-                                <div class="col-4">
-                                    <label class="form-label m-0"><small>Wear</small></label>
-                                    <input class="form-control form-control-sm" type="number" step="0.01" min="0" max="1" data-sticker-input="wear" value="0">
-                                </div>
-                                <div class="col-6">
-                                    <label class="form-label m-0"><small>Pos X</small></label>
-                                    <input class="form-control form-control-sm" type="number" step="0.01" min="-2" max="2" data-sticker-input="x" value="0">
-                                </div>
-                                <div class="col-6">
-                                    <label class="form-label m-0"><small>Pos Y</small></label>
-                                    <input class="form-control form-control-sm" type="number" step="0.01" min="-2" max="2" data-sticker-input="y" value="0">
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-lg-7">
+                            <div class="p-2 rounded border border-secondary-subtle bg-color">
+                                <img id="modalImg" class="mx-auto d-block mb-2" src="https://raw.githubusercontent.com/ByMykel/CSGO-API/efe25483a04a03414dea9c61d4b0e958a373cdfd/public/images/econ/default_generated/weapon_knife_gut_aa_fade_light.png" style="max-height: 110px; object-fit: contain;">
+                                <div id="editor3dHost" class="w-100" style="display: none;">
+                                    <div id="editor3dCanvas" style="height: 340px; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px;"></div>
                                 </div>
                             </div>
-                            <div class="d-flex gap-2 mt-2">
-                                <button type="button" class="btn btn-sm btn-primary" data-sticker-apply>Apply Slot</button>
-                                <button type="button" class="btn btn-sm btn-outline-light" data-sticker-remove>Remove Slot</button>
-                                <button type="button" class="btn btn-sm btn-outline-warning" data-sticker-reset>Reset All</button>
+                        </div>
+                        <div class="col-lg-5">
+                            <div class="p-2 rounded border border-secondary-subtle bg-color">
+                                <h6 class="mb-2">Finish Controls</h6>
+                                <div class="form-outline mb-2">
+                                    <label class="form-label m-0" for="float"><%= lang.modal.float %></label>
+                                    <input type="range" id="floatSlider" class="slider" min="0" max="1" step="0.000001" value="0.000001" data-bs-theme="dark">
+                                    <input type="number" id="float" class="form-control" min="0" max="1" step="0.000001" value="0.000001" data-bs-theme="dark">
+                                    <p id="floatText" class="text-center m-0"><%= lang.modal.patternButtons[0].longName %></p>
+                                </div>
+                                <div class="btn-group w-100 mb-2">
+                                    <button onclick="setFloat(0.0001)" class="btn btn-primary floatButton"><%= lang.modal.patternButtons[0].shortName %></button>
+                                    <button onclick="setFloat(0.07)" class="btn btn-primary floatButton"><%= lang.modal.patternButtons[1].shortName %></button>
+                                    <button onclick="setFloat(0.15)" class="btn btn-primary floatButton"><%= lang.modal.patternButtons[2].shortName %></button>
+                                    <button onclick="setFloat(0.38)" class="btn btn-primary floatButton"><%= lang.modal.patternButtons[3].shortName %></button>
+                                    <button onclick="setFloat(0.45)" class="btn btn-primary floatButton"><%= lang.modal.patternButtons[4].shortName %></button>
+                                </div>
+                                <div class="form-outline mb-2">
+                                    <label class="form-label m-0" for="pattern"><%= lang.modal.pattern %></label>
+                                    <input type="number" id="pattern" class="form-control" placeholder="Pattern" value="0" data-bs-theme="dark">
+                                </div>
                             </div>
-                            <div class="mt-2" data-sticker-summary></div>
+
+                            <div id="stickerEditorHost" class="mt-3" style="display: none;">
+                                <div class="border rounded p-2 bg-color" style="border-color: rgba(255,255,255,0.18) !important;">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <h6 class="m-0">Sticker Editor</h6>
+                                        <small class="text-secondary">5 slots</small>
+                                    </div>
+                                    <div class="row g-2">
+                                        <div class="col-4">
+                                            <label class="form-label m-0"><small>Slot</small></label>
+                                            <select class="form-select form-select-sm" data-sticker-slot>
+                                                <option value="0">Slot 1</option>
+                                                <option value="1">Slot 2</option>
+                                                <option value="2">Slot 3</option>
+                                                <option value="3">Slot 4</option>
+                                                <option value="4">Slot 5</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-8">
+                                            <label class="form-label m-0"><small>Sticker ID</small></label>
+                                            <input class="form-control form-control-sm" type="text" data-sticker-input="id" placeholder="sticker_name">
+                                        </div>
+                                        <div class="col-4">
+                                            <label class="form-label m-0"><small>Scale</small></label>
+                                            <input class="form-control form-control-sm" type="number" step="0.01" min="0.05" max="4" data-sticker-input="scale" value="1">
+                                        </div>
+                                        <div class="col-4">
+                                            <label class="form-label m-0"><small>Rotation</small></label>
+                                            <input class="form-control form-control-sm" type="number" step="1" min="-180" max="180" data-sticker-input="rotation" value="0">
+                                        </div>
+                                        <div class="col-4">
+                                            <label class="form-label m-0"><small>Wear</small></label>
+                                            <input class="form-control form-control-sm" type="number" step="0.01" min="0" max="1" data-sticker-input="wear" value="0">
+                                        </div>
+                                        <div class="col-6">
+                                            <label class="form-label m-0"><small>Pos X</small></label>
+                                            <input class="form-control form-control-sm" type="number" step="0.01" min="-2" max="2" data-sticker-input="x" value="0">
+                                        </div>
+                                        <div class="col-6">
+                                            <label class="form-label m-0"><small>Pos Y</small></label>
+                                            <input class="form-control form-control-sm" type="number" step="0.01" min="-2" max="2" data-sticker-input="y" value="0">
+                                        </div>
+                                    </div>
+                                    <div class="d-flex gap-2 mt-2">
+                                        <button type="button" class="btn btn-sm btn-primary" data-sticker-apply>Apply Slot</button>
+                                        <button type="button" class="btn btn-sm btn-outline-light" data-sticker-remove>Remove Slot</button>
+                                        <button type="button" class="btn btn-sm btn-outline-warning" data-sticker-reset>Reset All</button>
+                                    </div>
+                                    <div class="mt-2" data-sticker-summary></div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer bg-nav text-light border-dark d-flex justify-content-center">
+                <div class="modal-footer border-dark d-flex justify-content-between">
+                    <small class="text-secondary">Preview updates in real time</small>
                     <button type="button" class="btn btn-primary" onclick="changeParams()" id="modalButton"><%= lang.change %></button>
                 </div>
             </div>
@@ -299,35 +314,6 @@
     }
 </script>
 
-<script>
-function updateFloatText(value) {
-    let text;
-    if (value >= 0 && value < 0.07) {
-        text = langObject.modal.patternButtons[0].longName;
-    } else if (value >= 0.07 && value < 0.15) {
-        text = langObject.modal.patternButtons[1].longName;
-    } else if (value >= 0.15 && value < 0.38) {
-        text = langObject.modal.patternButtons[2].longName;
-    } else if (value >= 0.38 && value < 0.45) {
-        text = langObject.modal.patternButtons[3].longName;
-    } else if (value >= 0.45 && value <= 1) {
-        text = langObject.modal.patternButtons[4].longName;
-    }
-    document.getElementById('floatText').textContent = text;
-}
-</script>
-
-<script>
-    document.getElementById('floatSlider').oninput = function() {
-        document.getElementById('float').value = this.value;
-        updateFloatText(parseFloat(this.value));
-    }
-
-    document.getElementById('float').oninput = function() {
-        document.getElementById('floatSlider').value = this.value;
-        updateFloatText(parseFloat(this.value));
-    }
-</script>
 
 <% if (typeof knife != 'undefined') { %>
     <script>    
@@ -366,15 +352,6 @@ function updateFloatText(value) {
     </script>
 <% } %>
 
-
-<script>
-    function setFloat(value) {
-        value = Math.round(value * 10000) / 10000; // Round to 4 decimal places
-        document.getElementById('floatSlider').value = value;
-        document.getElementById('float').value = value;
-        updateFloatText(value);
-    }
-</script>
 
 <script></script>
 
