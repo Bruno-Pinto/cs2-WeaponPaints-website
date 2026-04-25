@@ -1,6 +1,7 @@
 const query = require('../database/db').query
 const config = require('../../config.json')
 const Logger = require('./logger')
+const { parseStickerPayload } = require('./sticker.schema')
 
 let langObj = require(`../lang/${config.lang}.json`)
 
@@ -78,11 +79,22 @@ async function getLoggedInUserInfo(req) {
         ]
     )
 
+    const normalizedSkins = skins.map((skin) => {
+        if (!Object.prototype.hasOwnProperty.call(skin, 'sticker_data')) {
+            return skin;
+        }
+
+        return {
+            ...skin,
+            sticker_data: parseStickerPayload(skin.sticker_data)
+        };
+    });
+
     return {
         config: config,
         knives: knives,
         knife: knives.length > 0 ? knives[0] : { steamid: req.user.id, knife: null },
-        skins: skins,
+        skins: normalizedSkins,
         gloves: gloves,
         agents: agents,
         music: music,

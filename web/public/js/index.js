@@ -7,6 +7,129 @@ window.currentSkinWeaponType = ''
 window.selectedTeam = 'both'
 window.lastNonBothTeam = 'ct'
 window.previousCategory = null
+window.featureFlags = (window.appConfig && window.appConfig.features) || {}
+window.skinEditor3D = null
+window.stickerEditor = null
+
+const is3dEditorEnabled = () => Boolean(window.featureFlags.editor3d)
+const is3dStickerEditorEnabled = () => Boolean(window.featureFlags.editor3d && window.featureFlags.editor3dStickers)
+
+const getCurrentStickerState = (weaponId, paintId) => {
+    const resolvedWeaponId = weaponIds[weaponId] || weaponId
+
+    if (typeof selectedSkins === 'undefined' || !Array.isArray(selectedSkins)) {
+        return []
+    }
+
+    const matchingSkins = selectedSkins.filter((skin) => {
+        return skin.weapon_defindex == resolvedWeaponId && skin.weapon_paint_id == paintId
+    })
+
+    if (!matchingSkins.length) {
+        return []
+    }
+
+    const selectedTeams = resolveSelectedTeams(window.selectedTeam)
+    const teamSkin = matchingSkins.find((skin) => selectedTeams.includes(skin.weapon_team)) || matchingSkins[0]
+    return Array.isArray(teamSkin.sticker_data) ? teamSkin.sticker_data : []
+}
+
+const mountOrUpdate3DEditor = (state) => {
+    if (!is3dEditorEnabled()) {
+        return
+    }
+
+    const canvasHost = document.getElementById('editor3dCanvas')
+    if (!canvasHost || !window.createSkinRenderer3D || !window.renderer3dContract) {
+        return
+    }
+
+    if (!window.skinEditor3D) {
+        window.skinEditor3D = window.createSkinRenderer3D({
+            container: canvasHost
+        })
+    }
+
+    if (!window.skinEditor3D) {
+        return
+    }
+
+    const normalizedState = window.renderer3dContract.createEditorState(state)
+
+    if (typeof window.skinEditor3D.mount === 'function' && !window.skinEditor3D.mountReady) {
+        window.skinEditor3D.mount(normalizedState)
+        return
+    }
+
+    if (typeof window.skinEditor3D.updateState === 'function') {
+        window.skinEditor3D.updateState(normalizedState)
+    }
+}
+
+const unmount3DEditor = () => {
+    if (!window.skinEditor3D) {
+        return
+    }
+
+    if (typeof window.skinEditor3D.unmount === 'function') {
+        window.skinEditor3D.unmount()
+    }
+
+    window.skinEditor3D = null
+}
+
+const getActiveStickers = () => {
+    if (window.stickerEditor && typeof window.stickerEditor.getStickers === 'function') {
+        return window.stickerEditor.getStickers()
+    }
+
+    return getCurrentStickerState(currentWeaponId, currentPaintId)
+}
+
+const mountOrUpdateStickerEditor = (stickers = []) => {
+    const stickerHost = document.getElementById('stickerEditorHost')
+    if (!stickerHost) {
+        return
+    }
+
+    if (!is3dStickerEditorEnabled()) {
+        stickerHost.style.display = 'none'
+        return
+    }
+
+    stickerHost.style.display = 'block'
+
+    if (!window.createStickerEditor) {
+        return
+    }
+
+    if (!window.stickerEditor) {
+        window.stickerEditor = window.createStickerEditor({
+            container: stickerHost,
+            onChange: (nextStickers) => {
+                mountOrUpdate3DEditor({
+                    weaponId: currentWeaponId,
+                    paintId: currentPaintId,
+                    wear: document.getElementById('float')?.value || '0.000001',
+                    seed: document.getElementById('pattern')?.value || '1',
+                    stickers: nextStickers
+                })
+            }
+        })
+    }
+
+    if (window.stickerEditor && typeof window.stickerEditor.mount === 'function') {
+        window.stickerEditor.mount(stickers)
+    }
+}
+
+const unmountStickerEditor = () => {
+    if (window.stickerEditor && typeof window.stickerEditor.destroy === 'function') {
+        window.stickerEditor.destroy()
+    }
+
+    window.stickerEditor = null
+}
 
 window.goBack = () => {
     if (window.previousCategory && typeof window[window.previousCategory] === 'function') {
@@ -171,6 +294,19 @@ function resetEditModal() {
         modalButton.innerHTML = langObject.change;
     }
 
+    const editor3dHost = document.getElementById('editor3dHost')
+    if (editor3dHost) {
+        editor3dHost.style.display = 'none'
+    }
+
+    const stickerEditorHost = document.getElementById('stickerEditorHost')
+    if (stickerEditorHost) {
+        stickerEditorHost.style.display = 'none'
+    }
+
+    unmountStickerEditor()
+    unmount3DEditor()
+
     return form;
 }
 
@@ -263,7 +399,26 @@ const applyCurrentParamsLocally = (payload) => {
         if (skin.weapon_defindex == payload.weaponid && skin.weapon_paint_id == payload.paintid && teamsToUpdate.includes(skin.weapon_team)) {
             skin.weapon_wear = payload.float
             skin.weapon_seed = payload.pattern
+            if (payload.stickers || payload.editor3d?.stickers) {
+                skin.sticker_data = payload.stickers || payload.editor3d.stickers
+            }
         }
+    })
+}
+
+const buildEditor3DPayload = (weaponid, paintid, float, pattern) => {
+    if (!is3dEditorEnabled() || !window.renderer3dContract) {
+        return null
+    }
+
+    const stickers = getActiveStickers()
+
+    return window.renderer3dContract.getEditorStatePayload({
+        weaponId: weaponid,
+        paintId: paintid,
+        wear: float,
+        seed: pattern,
+        stickers
     })
 }
 
@@ -394,6 +549,7 @@ const editModal = (img, weaponName, paintName, weaponId, paintId) => {
     currentWeaponId = weaponIds[weaponId] || weaponId
     currentPaintId = paintId
     const { floatValue, patternValue } = getCurrentSkinParams(weaponId, paintId)
+    const stickers = getCurrentStickerState(weaponId, paintId)
     syncFloatInputs(floatValue)
 
     const patternInput = document.getElementById('pattern')
@@ -405,6 +561,22 @@ const editModal = (img, weaponName, paintName, weaponId, paintId) => {
     if (modalButton && typeof langObject !== 'undefined') {
         modalButton.innerHTML = langObject.change
     }
+
+    const editor3dHost = document.getElementById('editor3dHost')
+    if (editor3dHost) {
+        editor3dHost.style.display = is3dEditorEnabled() ? 'block' : 'none'
+    }
+
+    mountOrUpdateStickerEditor(stickers)
+
+    mountOrUpdate3DEditor({
+        weaponId: currentWeaponId,
+        paintId: currentPaintId,
+        wear: floatValue,
+        seed: patternValue,
+        stickers
+    })
+
     console.log(img, weaponName, paintName, currentWeaponId, currentPaintId)
 }
 
@@ -415,13 +587,16 @@ const changeParams = () => {
     let float = document.getElementById("float").value || '0.000001'
     let pattern = document.getElementById("pattern").value || '1'
     const team = window.selectedTeam || 'both'
+    const editor3d = buildEditor3DPayload(weaponid, paintid, float, pattern)
 
     window.pendingParamUpdate = {
         weaponid,
         paintid,
         float,
         pattern,
-        team
+        team,
+        editor3d,
+        stickers: editor3d ? editor3d.stickers : []
     }
 
     document.getElementById('modalButton').innerHTML = 
@@ -437,12 +612,23 @@ const changeParams = () => {
         paintid: paintid,
         float: float,
         pattern: pattern,
-        team
+        team,
+        editor3d,
+        stickers: editor3d ? editor3d.stickers : []
     })
 }
 
-socket.on('params-changed', () => {
-    applyCurrentParamsLocally(window.pendingParamUpdate)
+socket.on('params-changed', (serverPayload = {}) => {
+    const pending = window.pendingParamUpdate || {}
+    const normalizedPayload = {
+        ...pending,
+        float: serverPayload.float ?? pending.float,
+        pattern: serverPayload.pattern ?? pending.pattern,
+        editor3d: serverPayload.editor3d || pending.editor3d,
+        stickers: serverPayload.stickers || pending.stickers
+    }
+
+    applyCurrentParamsLocally(normalizedPayload)
     window.pendingParamUpdate = null
     document.getElementById('modalButton').innerHTML = langObject.change
     const modalElement = document.getElementById('patternFloat')
@@ -462,9 +648,51 @@ socket.on('params-changed', () => {
 const floatSlider = document.getElementById('floatSlider')
 const floatInput = document.getElementById('float')
 if (floatSlider && floatInput) {
-    floatSlider.addEventListener('input', (event) => syncFloatInputs(event.target.value))
-    floatInput.addEventListener('input', (event) => syncFloatInputs(event.target.value))
+    floatSlider.addEventListener('input', (event) => {
+        syncFloatInputs(event.target.value)
+        mountOrUpdate3DEditor({
+            weaponId: currentWeaponId,
+            paintId: currentPaintId,
+            wear: event.target.value,
+            seed: document.getElementById('pattern')?.value || '1',
+            stickers: buildEditor3DPayload(currentWeaponId, currentPaintId, event.target.value, document.getElementById('pattern')?.value || '1')?.stickers || []
+        })
+    })
+
+    floatInput.addEventListener('input', (event) => {
+        syncFloatInputs(event.target.value)
+        mountOrUpdate3DEditor({
+            weaponId: currentWeaponId,
+            paintId: currentPaintId,
+            wear: event.target.value,
+            seed: document.getElementById('pattern')?.value || '1',
+            stickers: buildEditor3DPayload(currentWeaponId, currentPaintId, event.target.value, document.getElementById('pattern')?.value || '1')?.stickers || []
+        })
+    })
+
+    const patternInput = document.getElementById('pattern')
+    if (patternInput) {
+        patternInput.addEventListener('input', (event) => {
+            mountOrUpdate3DEditor({
+                weaponId: currentWeaponId,
+                paintId: currentPaintId,
+                wear: document.getElementById('float')?.value || '0.000001',
+                seed: event.target.value || '1',
+                stickers: getActiveStickers()
+            })
+        })
+    }
+
     syncFloatInputs(floatInput.value || floatSlider.value)
+}
+
+const editModalElement = document.getElementById('patternFloat')
+if (editModalElement) {
+    editModalElement.addEventListener('hidden.bs.modal', () => {
+        unmountStickerEditor()
+        unmount3DEditor()
+        resetEditModal()
+    })
 }
 
 const showSuccessNotification = () => {

@@ -20,5 +20,9 @@
         "serverPort": "Server Port",
         "serverPassword": "Server Password"
     },
+    "features": {
+        "editor3d": false,
+        "editor3dStickers": false
+    },
     "LOG_LEVEL": "info"
 }
